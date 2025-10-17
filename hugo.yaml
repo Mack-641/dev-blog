@@ -1,0 +1,76 @@
+baseURL: "https://Mack-641.github.io/"
+languageCode: "en-us"
+title: "My Dev Blog"
+theme: "PaperMod"
+
+params:
+  author: "Mack"
+  defaultTheme: auto # auto, dark, or light
+  ShowReadingTime: true
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowToc: true
+  comments: false
+
+  socialIcons:
+    - name: "github"
+      url: "https://github.com/Mack-641"
+
+  profileMode:
+    enabled: true
+    title: "Welcome to My Blog"
+    subtitle: "Tech, Projects, and Ideas"
+    imageUrl: "/images/profile.png" # optional — site-wide cover/profile image
+    image_width: 400
+    image_height: 400
+    buttons:
+      - name: Posts
+        url: /posts/
+      - name: About
+        url: /about/
+
+  fuseOpts:
+    isCaseSensitive: false
+    shouldSort: true
+    location: 0
+    distance: 1000
+    threshold: 0.4
+    minMatchCharLength: 2
+    keys: ["title", "permalink", "summary", "content"]
+
+  ShowSearch: true
+
+menu:
+  main:
+    - identifier: posts
+      name: Posts
+      url: /posts/
+      weight: 10
+    - identifier: archives
+      name: Archives
+      url: /archives/
+      weight: 15
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 20
+    - identifier: search
+      name: Search
+      url: /search/
+      weight: 25
+    - identifier: tags
+      name: Tags
+      url: /tags/
+      weight: 30
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
+
+taxonomies:
+  tag: "tags"
+  category: "categories"
