@@ -1,1 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Workflow on My Dev Blog</title><link>https://Mack-641.github.io/tags/workflow/</link><description>Recent content in Workflow on My Dev Blog</description><generator>Hugo -- 0.151.0</generator><language>en-us</language><lastBuildDate>Fri, 17 Oct 2025 17:11:08 +0200</lastBuildDate><atom:link href="https://Mack-641.github.io/tags/workflow/index.xml" rel="self" type="application/rss+xml"/><item><title>Git Command Cheatsheet</title><link>https://Mack-641.github.io/posts/git/</link><pubDate>Fri, 17 Oct 2025 17:11:08 +0200</pubDate><guid>https://Mack-641.github.io/posts/git/</guid><description>&lt;p&gt;A compact, practical Git command reference for daily use — copy commands and adapt them to your repo. Use this as a quick cheat-sheet.&lt;/p&gt;</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Workflow on My Dev Blog</title>
+    <link>http://localhost:1313/dev-blog/tags/workflow/</link>
+    <description>Recent content in Workflow on My Dev Blog</description>
+    <generator>Hugo -- 0.151.0</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 17 Oct 2025 17:11:08 +0200</lastBuildDate>
+    <atom:link href="http://localhost:1313/dev-blog/tags/workflow/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Git Command Cheatsheet</title>
+      <link>http://localhost:1313/dev-blog/posts/git/</link>
+      <pubDate>Fri, 17 Oct 2025 17:11:08 +0200</pubDate>
+      <guid>http://localhost:1313/dev-blog/posts/git/</guid>
+      <description>&lt;p&gt;A compact, practical Git command reference for daily use — copy commands and adapt them to your repo. Use this as a quick cheat-sheet.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

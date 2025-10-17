@@ -1,89 +1,433 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Linux Command Cheatsheet | My Dev Blog</title><meta name=keywords content="linux,cheatsheet,cli"><meta name=description content="A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment."><meta name=author content="Mack"><link rel=canonical href=https://Mack-641.github.io/posts/linux/><link crossorigin=anonymous href=/assets/css/stylesheet.a482bf00fa5c046040ef7973ad5fdf5657890cacb596c93f1382f664ca542074.css integrity="sha256-pIK/APpcBGBA73lzrV/fVleJDKy1lsk/E4L2ZMpUIHQ=" rel="preload stylesheet" as=style><link rel=icon href=https://Mack-641.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://Mack-641.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://Mack-641.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://Mack-641.github.io/apple-touch-icon.png><link rel=mask-icon href=https://Mack-641.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://Mack-641.github.io/posts/linux/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://Mack-641.github.io/posts/linux/"><meta property="og:site_name" content="My Dev Blog"><meta property="og:title" content="Linux Command Cheatsheet"><meta property="og:description" content="A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment."><meta property="og:locale" content="en-us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2025-10-17T17:11:08+02:00"><meta property="article:modified_time" content="2025-10-17T17:11:08+02:00"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Cheatsheet"><meta property="article:tag" content="Cli"><meta name=twitter:card content="summary"><meta name=twitter:title content="Linux Command Cheatsheet"><meta name=twitter:description content="A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment."><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://Mack-641.github.io/posts/"},{"@type":"ListItem","position":2,"name":"Linux Command Cheatsheet","item":"https://Mack-641.github.io/posts/linux/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Linux Command Cheatsheet","name":"Linux Command Cheatsheet","description":"A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment.\n","keywords":["linux","cheatsheet","cli"],"articleBody":"A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment.\nFiles \u0026 directories ls -la # list files with details cd /path/to/dir # change directory pwd # print working directory mkdir -p dir/subdir # create directories cp -r src dest # copy files/directories mv old new # move/rename rm file # remove file rm -rf dir # remove directory (dangerous) Viewing file contents cat file tac file # reverse cat less file # pager (q to quit) head -n 50 file tail -n 100 file tail -f /var/log/syslog # follow log Searching \u0026 text processing grep -R --line-number \"pattern\" . grep -i \"pattern\" file # case-insensitive awk '{print $1,$3}' file sed -n '1,50p' file cut -d',' -f1 file sort file | uniq -c | sort -rn xargs -0 \u003c list.txt command File find \u0026 permissions find /path -type f -name \"*.log\" find . -mtime -7 # modified within 7 days stat file # file metadata chmod 644 file # set permissions chown user:group file # change owner Processes \u0026 system info ps aux | grep myproc pgrep -f process_name top # interactive process viewer htop # improved top (if installed) kill kill -9 # force kill nice -n 10 command # set priority renice -n -5 Networking ip addr show ss -tulpen # sockets (recommended over netstat) curl -I https://example.com curl -fsSL https://example.com | bash # careful with piped scripts ping -c 4 8.8.8.8 traceroute example.com dig +short example.com Package managers (examples) # Debian/Ubuntu (apt) sudo apt update sudo apt install -y package # RHEL/CentOS (dnf/yum) sudo dnf install package # Arch (pacman) sudo pacman -Syu package Services \u0026 boot systemctl status nginx.service sudo systemctl start|stop|restart nginx sudo systemctl enable nginx journalctl -u nginx -f journalctl -b --since \"2 hours ago\" Disks \u0026 mount df -h # disk usage du -sh ./path # directory size lsblk # block devices mount /dev/sdb1 /mnt/data umount /mnt/data SSH \u0026 remote ssh user@host ssh -i ~/.ssh/key user@host scp file user@host:/path rsync -avz ./dir/ user@host:/path ssh-copy-id user@host Containers \u0026 virtualization (quick) docker ps docker logs -f container podman ps virsh list --all Shell \u0026 productivity tips # quick file editing nano file code file # VS Code from terminal # history and re-run history | grep deploy !123 # run history item 123 !! # repeat last command # useful aliases (add to ~/.bashrc or ~/.zshrc) alias ll='ls -la' alias gs='git status' Safety \u0026 debugging Use sudo only when necessary. Preview destructive commands with echo or –dry-run (when available). Redirect stderr to a file for debugging: command 2\u003eerrors.log Use shellcheck for shell script linting. Quick checklist before executing scripts from the web Inspect the script Run in a safe environment or container Check required privileges and side effects That’s it — keep this post as a quick Linux CLI reference and extend with distro-specific notes as needed.\n","wordCount":"483","inLanguage":"en","datePublished":"2025-10-17T17:11:08+02:00","dateModified":"2025-10-17T17:11:08+02:00","author":{"@type":"Person","name":"Mack"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://Mack-641.github.io/posts/linux/"},"publisher":{"@type":"Organization","name":"My Dev Blog","logo":{"@type":"ImageObject","url":"https://Mack-641.github.io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://Mack-641.github.io/ accesskey=h title="My Dev Blog (Alt + H)">My Dev Blog</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
-<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://Mack-641.github.io/posts/ title=Posts><span>Posts</span></a></li><li><a href=https://Mack-641.github.io/archives/ title=Archives><span>Archives</span></a></li><li><a href=https://Mack-641.github.io/about/ title=About><span>About</span></a></li><li><a href=https://Mack-641.github.io/search/ title="Search (Alt + /)" accesskey=/><span>Search</span></a></li><li><a href=https://Mack-641.github.io/tags/ title=Tags><span>Tags</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><div class=breadcrumbs><a href=https://Mack-641.github.io/>Home</a>&nbsp;»&nbsp;<a href=https://Mack-641.github.io/posts/>Posts</a></div><h1 class="post-title entry-hint-parent">Linux Command Cheatsheet</h1><div class=post-meta><span title='2025-10-17 17:11:08 +0200 SAST'>October 17, 2025</span>&nbsp;·&nbsp;<span>3 min</span>&nbsp;·&nbsp;<span>Mack</span></div></header><div class=toc><details><summary accesskey=c title="(Alt + C)"><span class=details>Table of Contents</span></summary><div class=inner><ul><li><a href=#files--directories aria-label="Files & directories">Files & directories</a></li><li><a href=#viewing-file-contents aria-label="Viewing file contents">Viewing file contents</a></li><li><a href=#searching--text-processing aria-label="Searching & text processing">Searching & text processing</a></li><li><a href=#file-find--permissions aria-label="File find & permissions">File find & permissions</a></li><li><a href=#processes--system-info aria-label="Processes & system info">Processes & system info</a></li><li><a href=#networking aria-label=Networking>Networking</a></li><li><a href=#package-managers-examples aria-label="Package managers (examples)">Package managers (examples)</a></li><li><a href=#services--boot aria-label="Services & boot">Services & boot</a></li><li><a href=#disks--mount aria-label="Disks & mount">Disks & mount</a></li><li><a href=#ssh--remote aria-label="SSH & remote">SSH & remote</a></li><li><a href=#containers--virtualization-quick aria-label="Containers & virtualization (quick)">Containers & virtualization (quick)</a></li><li><a href=#shell--productivity-tips aria-label="Shell & productivity tips">Shell & productivity tips</a></li><li><a href=#safety--debugging aria-label="Safety & debugging">Safety & debugging</a></li><li><a href=#quick-checklist-before-executing-scripts-from-the-web aria-label="Quick checklist before executing scripts from the web">Quick checklist before executing scripts from the web</a></li></ul></div></details></div><div class=post-content><p>A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment.</p><h2 id=files--directories>Files & directories<a hidden class=anchor aria-hidden=true href=#files--directories>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>ls -la                <span style=color:#75715e># list files with details</span>
-</span></span><span style=display:flex><span>cd /path/to/dir       <span style=color:#75715e># change directory</span>
-</span></span><span style=display:flex><span>pwd                   <span style=color:#75715e># print working directory</span>
-</span></span><span style=display:flex><span>mkdir -p dir/subdir   <span style=color:#75715e># create directories</span>
-</span></span><span style=display:flex><span>cp -r src dest        <span style=color:#75715e># copy files/directories</span>
-</span></span><span style=display:flex><span>mv old new            <span style=color:#75715e># move/rename</span>
-</span></span><span style=display:flex><span>rm file               <span style=color:#75715e># remove file</span>
-</span></span><span style=display:flex><span>rm -rf dir            <span style=color:#75715e># remove directory (dangerous)</span>
-</span></span></code></pre></div><h2 id=viewing-file-contents>Viewing file contents<a hidden class=anchor aria-hidden=true href=#viewing-file-contents>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>cat file
-</span></span><span style=display:flex><span>tac file               <span style=color:#75715e># reverse cat</span>
-</span></span><span style=display:flex><span>less file              <span style=color:#75715e># pager (q to quit)</span>
-</span></span><span style=display:flex><span>head -n <span style=color:#ae81ff>50</span> file
-</span></span><span style=display:flex><span>tail -n <span style=color:#ae81ff>100</span> file
-</span></span><span style=display:flex><span>tail -f /var/log/syslog  <span style=color:#75715e># follow log</span>
-</span></span></code></pre></div><h2 id=searching--text-processing>Searching & text processing<a hidden class=anchor aria-hidden=true href=#searching--text-processing>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>grep -R --line-number <span style=color:#e6db74>&#34;pattern&#34;</span> .
-</span></span><span style=display:flex><span>grep -i <span style=color:#e6db74>&#34;pattern&#34;</span> file      <span style=color:#75715e># case-insensitive</span>
-</span></span><span style=display:flex><span>awk <span style=color:#e6db74>&#39;{print $1,$3}&#39;</span> file
-</span></span><span style=display:flex><span>sed -n <span style=color:#e6db74>&#39;1,50p&#39;</span> file
-</span></span><span style=display:flex><span>cut -d<span style=color:#e6db74>&#39;,&#39;</span> -f1 file
-</span></span><span style=display:flex><span>sort file | uniq -c | sort -rn
-</span></span><span style=display:flex><span>xargs -0 &lt; list.txt command
-</span></span></code></pre></div><h2 id=file-find--permissions>File find & permissions<a hidden class=anchor aria-hidden=true href=#file-find--permissions>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>find /path -type f -name <span style=color:#e6db74>&#34;*.log&#34;</span>
-</span></span><span style=display:flex><span>find . -mtime -7            <span style=color:#75715e># modified within 7 days</span>
-</span></span><span style=display:flex><span>stat file                   <span style=color:#75715e># file metadata</span>
-</span></span><span style=display:flex><span>chmod <span style=color:#ae81ff>644</span> file              <span style=color:#75715e># set permissions</span>
-</span></span><span style=display:flex><span>chown user:group file       <span style=color:#75715e># change owner</span>
-</span></span></code></pre></div><h2 id=processes--system-info>Processes & system info<a hidden class=anchor aria-hidden=true href=#processes--system-info>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>ps aux | grep myproc
-</span></span><span style=display:flex><span>pgrep -f process_name
-</span></span><span style=display:flex><span>top                        <span style=color:#75715e># interactive process viewer</span>
-</span></span><span style=display:flex><span>htop                       <span style=color:#75715e># improved top (if installed)</span>
-</span></span><span style=display:flex><span>kill &lt;pid&gt;
-</span></span><span style=display:flex><span>kill -9 &lt;pid&gt;              <span style=color:#75715e># force kill</span>
-</span></span><span style=display:flex><span>nice -n <span style=color:#ae81ff>10</span> command         <span style=color:#75715e># set priority</span>
-</span></span><span style=display:flex><span>renice -n -5 &lt;pid&gt;
-</span></span></code></pre></div><h2 id=networking>Networking<a hidden class=anchor aria-hidden=true href=#networking>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>ip addr show
-</span></span><span style=display:flex><span>ss -tulpen                 <span style=color:#75715e># sockets (recommended over netstat)</span>
-</span></span><span style=display:flex><span>curl -I https://example.com
-</span></span><span style=display:flex><span>curl -fsSL https://example.com | bash   <span style=color:#75715e># careful with piped scripts</span>
-</span></span><span style=display:flex><span>ping -c <span style=color:#ae81ff>4</span> 8.8.8.8
-</span></span><span style=display:flex><span>traceroute example.com
-</span></span><span style=display:flex><span>dig +short example.com
-</span></span></code></pre></div><h2 id=package-managers-examples>Package managers (examples)<a hidden class=anchor aria-hidden=true href=#package-managers-examples>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Debian/Ubuntu (apt)</span>
-</span></span><span style=display:flex><span>sudo apt update
-</span></span><span style=display:flex><span>sudo apt install -y package
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e># RHEL/CentOS (dnf/yum)</span>
-</span></span><span style=display:flex><span>sudo dnf install package
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e># Arch (pacman)</span>
-</span></span><span style=display:flex><span>sudo pacman -Syu package
-</span></span></code></pre></div><h2 id=services--boot>Services & boot<a hidden class=anchor aria-hidden=true href=#services--boot>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>systemctl status nginx.service
-</span></span><span style=display:flex><span>sudo systemctl start|stop|restart nginx
-</span></span><span style=display:flex><span>sudo systemctl enable nginx
-</span></span><span style=display:flex><span>journalctl -u nginx -f
-</span></span><span style=display:flex><span>journalctl -b --since <span style=color:#e6db74>&#34;2 hours ago&#34;</span>
-</span></span></code></pre></div><h2 id=disks--mount>Disks & mount<a hidden class=anchor aria-hidden=true href=#disks--mount>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>df -h                     <span style=color:#75715e># disk usage</span>
-</span></span><span style=display:flex><span>du -sh ./path             <span style=color:#75715e># directory size</span>
-</span></span><span style=display:flex><span>lsblk                     <span style=color:#75715e># block devices</span>
-</span></span><span style=display:flex><span>mount /dev/sdb1 /mnt/data
-</span></span><span style=display:flex><span>umount /mnt/data
-</span></span></code></pre></div><h2 id=ssh--remote>SSH & remote<a hidden class=anchor aria-hidden=true href=#ssh--remote>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>ssh user@host
-</span></span><span style=display:flex><span>ssh -i ~/.ssh/key user@host
-</span></span><span style=display:flex><span>scp file user@host:/path
-</span></span><span style=display:flex><span>rsync -avz ./dir/ user@host:/path
-</span></span><span style=display:flex><span>ssh-copy-id user@host
-</span></span></code></pre></div><h2 id=containers--virtualization-quick>Containers & virtualization (quick)<a hidden class=anchor aria-hidden=true href=#containers--virtualization-quick>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>docker ps
-</span></span><span style=display:flex><span>docker logs -f container
-</span></span><span style=display:flex><span>podman ps
-</span></span><span style=display:flex><span>virsh list --all
-</span></span></code></pre></div><h2 id=shell--productivity-tips>Shell & productivity tips<a hidden class=anchor aria-hidden=true href=#shell--productivity-tips>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># quick file editing</span>
-</span></span><span style=display:flex><span>nano file
-</span></span><span style=display:flex><span>code file                <span style=color:#75715e># VS Code from terminal</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e># history and re-run</span>
-</span></span><span style=display:flex><span>history | grep deploy
-</span></span><span style=display:flex><span>!123                     <span style=color:#75715e># run history item 123</span>
-</span></span><span style=display:flex><span>!!                       <span style=color:#75715e># repeat last command</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e># useful aliases (add to ~/.bashrc or ~/.zshrc)</span>
-</span></span><span style=display:flex><span>alias ll<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;ls -la&#39;</span>
-</span></span><span style=display:flex><span>alias gs<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;git status&#39;</span>
-</span></span></code></pre></div><h2 id=safety--debugging>Safety & debugging<a hidden class=anchor aria-hidden=true href=#safety--debugging>#</a></h2><ul><li>Use sudo only when necessary.</li><li>Preview destructive commands with echo or &ndash;dry-run (when available).</li><li>Redirect stderr to a file for debugging: command 2>errors.log</li><li>Use shellcheck for shell script linting.</li></ul><h2 id=quick-checklist-before-executing-scripts-from-the-web>Quick checklist before executing scripts from the web<a hidden class=anchor aria-hidden=true href=#quick-checklist-before-executing-scripts-from-the-web>#</a></h2><ul><li>Inspect the script</li><li>Run in a safe environment or container</li><li>Check required privileges and side effects</li></ul><p>That&rsquo;s it — keep this post as a quick Linux CLI reference and extend with distro-specific notes as needed.</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://Mack-641.github.io/tags/linux/>Linux</a></li><li><a href=https://Mack-641.github.io/tags/cheatsheet/>Cheatsheet</a></li><li><a href=https://Mack-641.github.io/tags/cli/>Cli</a></li></ul><nav class=paginav><a class=prev href=https://Mack-641.github.io/posts/git/><span class=title>« Prev</span><br><span>Git Command Cheatsheet</span>
-</a><a class=next href=https://Mack-641.github.io/posts/markdown_notes/><span class=title>Next »</span><br><span>Markdown</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2025 <a href=https://Mack-641.github.io/>My Dev Blog</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/dev-blog/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=dev-blog/livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Linux Command Cheatsheet | My Dev Blog</title>
+<meta name="keywords" content="linux, cheatsheet, cli">
+<meta name="description" content="A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment.">
+<meta name="author" content="Mack">
+<link rel="canonical" href="http://localhost:1313/dev-blog/posts/linux/">
+<link crossorigin="anonymous" href="/dev-blog/assets/css/stylesheet.a482bf00fa5c046040ef7973ad5fdf5657890cacb596c93f1382f664ca542074.css" integrity="sha256-pIK/APpcBGBA73lzrV/fVleJDKy1lsk/E4L2ZMpUIHQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/dev-blog/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/dev-blog/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/dev-blog/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/dev-blog/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/dev-blog/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/dev-blog/posts/linux/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/dev-blog/" accesskey="h" title="My Dev Blog (Alt + H)">My Dev Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-blog/posts/" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/dev-blog/archives/" title="Archives">
+                    <span>Archives</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/dev-blog/about/" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/dev-blog/search/" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/dev-blog/tags/" title="Tags">
+                    <span>Tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:1313/dev-blog/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/dev-blog/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Linux Command Cheatsheet
+    </h1>
+    <div class="post-meta"><span title='2025-10-17 17:11:08 +0200 SAST'>October 17, 2025</span>&nbsp;·&nbsp;<span>3 min</span>&nbsp;·&nbsp;<span>Mack</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#files--directories" aria-label="Files &amp; directories">Files &amp; directories</a></li>
+                <li>
+                    <a href="#viewing-file-contents" aria-label="Viewing file contents">Viewing file contents</a></li>
+                <li>
+                    <a href="#searching--text-processing" aria-label="Searching &amp; text processing">Searching &amp; text processing</a></li>
+                <li>
+                    <a href="#file-find--permissions" aria-label="File find &amp; permissions">File find &amp; permissions</a></li>
+                <li>
+                    <a href="#processes--system-info" aria-label="Processes &amp; system info">Processes &amp; system info</a></li>
+                <li>
+                    <a href="#networking" aria-label="Networking">Networking</a></li>
+                <li>
+                    <a href="#package-managers-examples" aria-label="Package managers (examples)">Package managers (examples)</a></li>
+                <li>
+                    <a href="#services--boot" aria-label="Services &amp; boot">Services &amp; boot</a></li>
+                <li>
+                    <a href="#disks--mount" aria-label="Disks &amp; mount">Disks &amp; mount</a></li>
+                <li>
+                    <a href="#ssh--remote" aria-label="SSH &amp; remote">SSH &amp; remote</a></li>
+                <li>
+                    <a href="#containers--virtualization-quick" aria-label="Containers &amp; virtualization (quick)">Containers &amp; virtualization (quick)</a></li>
+                <li>
+                    <a href="#shell--productivity-tips" aria-label="Shell &amp; productivity tips">Shell &amp; productivity tips</a></li>
+                <li>
+                    <a href="#safety--debugging" aria-label="Safety &amp; debugging">Safety &amp; debugging</a></li>
+                <li>
+                    <a href="#quick-checklist-before-executing-scripts-from-the-web" aria-label="Quick checklist before executing scripts from the web">Quick checklist before executing scripts from the web</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p>A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment.</p>
+<h2 id="files--directories">Files &amp; directories<a hidden class="anchor" aria-hidden="true" href="#files--directories">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ls -la                <span style="color:#75715e"># list files with details</span>
+</span></span><span style="display:flex;"><span>cd /path/to/dir       <span style="color:#75715e"># change directory</span>
+</span></span><span style="display:flex;"><span>pwd                   <span style="color:#75715e"># print working directory</span>
+</span></span><span style="display:flex;"><span>mkdir -p dir/subdir   <span style="color:#75715e"># create directories</span>
+</span></span><span style="display:flex;"><span>cp -r src dest        <span style="color:#75715e"># copy files/directories</span>
+</span></span><span style="display:flex;"><span>mv old new            <span style="color:#75715e"># move/rename</span>
+</span></span><span style="display:flex;"><span>rm file               <span style="color:#75715e"># remove file</span>
+</span></span><span style="display:flex;"><span>rm -rf dir            <span style="color:#75715e"># remove directory (dangerous)</span>
+</span></span></code></pre></div><h2 id="viewing-file-contents">Viewing file contents<a hidden class="anchor" aria-hidden="true" href="#viewing-file-contents">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cat file
+</span></span><span style="display:flex;"><span>tac file               <span style="color:#75715e"># reverse cat</span>
+</span></span><span style="display:flex;"><span>less file              <span style="color:#75715e"># pager (q to quit)</span>
+</span></span><span style="display:flex;"><span>head -n <span style="color:#ae81ff">50</span> file
+</span></span><span style="display:flex;"><span>tail -n <span style="color:#ae81ff">100</span> file
+</span></span><span style="display:flex;"><span>tail -f /var/log/syslog  <span style="color:#75715e"># follow log</span>
+</span></span></code></pre></div><h2 id="searching--text-processing">Searching &amp; text processing<a hidden class="anchor" aria-hidden="true" href="#searching--text-processing">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>grep -R --line-number <span style="color:#e6db74">&#34;pattern&#34;</span> .
+</span></span><span style="display:flex;"><span>grep -i <span style="color:#e6db74">&#34;pattern&#34;</span> file      <span style="color:#75715e"># case-insensitive</span>
+</span></span><span style="display:flex;"><span>awk <span style="color:#e6db74">&#39;{print $1,$3}&#39;</span> file
+</span></span><span style="display:flex;"><span>sed -n <span style="color:#e6db74">&#39;1,50p&#39;</span> file
+</span></span><span style="display:flex;"><span>cut -d<span style="color:#e6db74">&#39;,&#39;</span> -f1 file
+</span></span><span style="display:flex;"><span>sort file | uniq -c | sort -rn
+</span></span><span style="display:flex;"><span>xargs -0 &lt; list.txt command
+</span></span></code></pre></div><h2 id="file-find--permissions">File find &amp; permissions<a hidden class="anchor" aria-hidden="true" href="#file-find--permissions">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>find /path -type f -name <span style="color:#e6db74">&#34;*.log&#34;</span>
+</span></span><span style="display:flex;"><span>find . -mtime -7            <span style="color:#75715e"># modified within 7 days</span>
+</span></span><span style="display:flex;"><span>stat file                   <span style="color:#75715e"># file metadata</span>
+</span></span><span style="display:flex;"><span>chmod <span style="color:#ae81ff">644</span> file              <span style="color:#75715e"># set permissions</span>
+</span></span><span style="display:flex;"><span>chown user:group file       <span style="color:#75715e"># change owner</span>
+</span></span></code></pre></div><h2 id="processes--system-info">Processes &amp; system info<a hidden class="anchor" aria-hidden="true" href="#processes--system-info">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ps aux | grep myproc
+</span></span><span style="display:flex;"><span>pgrep -f process_name
+</span></span><span style="display:flex;"><span>top                        <span style="color:#75715e"># interactive process viewer</span>
+</span></span><span style="display:flex;"><span>htop                       <span style="color:#75715e"># improved top (if installed)</span>
+</span></span><span style="display:flex;"><span>kill &lt;pid&gt;
+</span></span><span style="display:flex;"><span>kill -9 &lt;pid&gt;              <span style="color:#75715e"># force kill</span>
+</span></span><span style="display:flex;"><span>nice -n <span style="color:#ae81ff">10</span> command         <span style="color:#75715e"># set priority</span>
+</span></span><span style="display:flex;"><span>renice -n -5 &lt;pid&gt;
+</span></span></code></pre></div><h2 id="networking">Networking<a hidden class="anchor" aria-hidden="true" href="#networking">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ip addr show
+</span></span><span style="display:flex;"><span>ss -tulpen                 <span style="color:#75715e"># sockets (recommended over netstat)</span>
+</span></span><span style="display:flex;"><span>curl -I https://example.com
+</span></span><span style="display:flex;"><span>curl -fsSL https://example.com | bash   <span style="color:#75715e"># careful with piped scripts</span>
+</span></span><span style="display:flex;"><span>ping -c <span style="color:#ae81ff">4</span> 8.8.8.8
+</span></span><span style="display:flex;"><span>traceroute example.com
+</span></span><span style="display:flex;"><span>dig +short example.com
+</span></span></code></pre></div><h2 id="package-managers-examples">Package managers (examples)<a hidden class="anchor" aria-hidden="true" href="#package-managers-examples">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Debian/Ubuntu (apt)</span>
+</span></span><span style="display:flex;"><span>sudo apt update
+</span></span><span style="display:flex;"><span>sudo apt install -y package
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># RHEL/CentOS (dnf/yum)</span>
+</span></span><span style="display:flex;"><span>sudo dnf install package
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Arch (pacman)</span>
+</span></span><span style="display:flex;"><span>sudo pacman -Syu package
+</span></span></code></pre></div><h2 id="services--boot">Services &amp; boot<a hidden class="anchor" aria-hidden="true" href="#services--boot">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>systemctl status nginx.service
+</span></span><span style="display:flex;"><span>sudo systemctl start|stop|restart nginx
+</span></span><span style="display:flex;"><span>sudo systemctl enable nginx
+</span></span><span style="display:flex;"><span>journalctl -u nginx -f
+</span></span><span style="display:flex;"><span>journalctl -b --since <span style="color:#e6db74">&#34;2 hours ago&#34;</span>
+</span></span></code></pre></div><h2 id="disks--mount">Disks &amp; mount<a hidden class="anchor" aria-hidden="true" href="#disks--mount">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>df -h                     <span style="color:#75715e"># disk usage</span>
+</span></span><span style="display:flex;"><span>du -sh ./path             <span style="color:#75715e"># directory size</span>
+</span></span><span style="display:flex;"><span>lsblk                     <span style="color:#75715e"># block devices</span>
+</span></span><span style="display:flex;"><span>mount /dev/sdb1 /mnt/data
+</span></span><span style="display:flex;"><span>umount /mnt/data
+</span></span></code></pre></div><h2 id="ssh--remote">SSH &amp; remote<a hidden class="anchor" aria-hidden="true" href="#ssh--remote">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ssh user@host
+</span></span><span style="display:flex;"><span>ssh -i ~/.ssh/key user@host
+</span></span><span style="display:flex;"><span>scp file user@host:/path
+</span></span><span style="display:flex;"><span>rsync -avz ./dir/ user@host:/path
+</span></span><span style="display:flex;"><span>ssh-copy-id user@host
+</span></span></code></pre></div><h2 id="containers--virtualization-quick">Containers &amp; virtualization (quick)<a hidden class="anchor" aria-hidden="true" href="#containers--virtualization-quick">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker ps
+</span></span><span style="display:flex;"><span>docker logs -f container
+</span></span><span style="display:flex;"><span>podman ps
+</span></span><span style="display:flex;"><span>virsh list --all
+</span></span></code></pre></div><h2 id="shell--productivity-tips">Shell &amp; productivity tips<a hidden class="anchor" aria-hidden="true" href="#shell--productivity-tips">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># quick file editing</span>
+</span></span><span style="display:flex;"><span>nano file
+</span></span><span style="display:flex;"><span>code file                <span style="color:#75715e"># VS Code from terminal</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># history and re-run</span>
+</span></span><span style="display:flex;"><span>history | grep deploy
+</span></span><span style="display:flex;"><span>!123                     <span style="color:#75715e"># run history item 123</span>
+</span></span><span style="display:flex;"><span>!!                       <span style="color:#75715e"># repeat last command</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># useful aliases (add to ~/.bashrc or ~/.zshrc)</span>
+</span></span><span style="display:flex;"><span>alias ll<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;ls -la&#39;</span>
+</span></span><span style="display:flex;"><span>alias gs<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;git status&#39;</span>
+</span></span></code></pre></div><h2 id="safety--debugging">Safety &amp; debugging<a hidden class="anchor" aria-hidden="true" href="#safety--debugging">#</a></h2>
+<ul>
+<li>Use sudo only when necessary.</li>
+<li>Preview destructive commands with echo or &ndash;dry-run (when available).</li>
+<li>Redirect stderr to a file for debugging: command 2&gt;errors.log</li>
+<li>Use shellcheck for shell script linting.</li>
+</ul>
+<h2 id="quick-checklist-before-executing-scripts-from-the-web">Quick checklist before executing scripts from the web<a hidden class="anchor" aria-hidden="true" href="#quick-checklist-before-executing-scripts-from-the-web">#</a></h2>
+<ul>
+<li>Inspect the script</li>
+<li>Run in a safe environment or container</li>
+<li>Check required privileges and side effects</li>
+</ul>
+<p>That&rsquo;s it — keep this post as a quick Linux CLI reference and extend with distro-specific notes as needed.</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/dev-blog/tags/linux/">Linux</a></li>
+      <li><a href="http://localhost:1313/dev-blog/tags/cheatsheet/">Cheatsheet</a></li>
+      <li><a href="http://localhost:1313/dev-blog/tags/cli/">Cli</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/dev-blog/posts/git/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>Git Command Cheatsheet</span>
+  </a>
+  <a class="next" href="http://localhost:1313/dev-blog/posts/markdown_notes/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Markdown</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/dev-blog/">My Dev Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
