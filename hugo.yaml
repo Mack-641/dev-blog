@@ -27,9 +27,9 @@ params:
     image_height: 400
     buttons:
       - name: Posts
-        url: /posts/
+        url: /dev-blog/posts/
       - name: About
-        url: /about/
+        url: /dev-blog/about/
 
   fuseOpts:
     isCaseSensitive: false
