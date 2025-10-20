@@ -1,10 +1,10 @@
 baseURL: "https://mack-641.github.io/dev-blog/"
 languageCode: "en-us"
-title: "My Dev Blog"
+title: "Dev Blog"
 theme: "PaperMod"
 
 params:
-  author: "Mack"
+  author: ["Mack", "Copilot"]
   defaultTheme: auto # auto, dark, or light
   ShowReadingTime: true
   ShowShareButtons: false
@@ -22,7 +22,7 @@ params:
     enabled: true
     title: "Welcome to My Blog"
     subtitle: "Tech, Projects, and Ideas"
-    imageUrl: "/images/profile.png" # optional — site-wide cover/profile image
+    imageUrl: "/images/profileDev.png" # optional — site-wide cover/profile image
     image_width: 400
     image_height: 400
     buttons:

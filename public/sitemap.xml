@@ -20,6 +20,9 @@
     <loc>http://localhost:1313/dev-blog/tags/design/</loc>
     <lastmod>2025-10-17T17:11:08+02:00</lastmod>
   </url><url>
+    <loc>http://localhost:1313/dev-blog/</loc>
+    <lastmod>2025-10-17T17:11:08+02:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/dev-blog/tags/docker/</loc>
     <lastmod>2025-10-17T17:11:08+02:00</lastmod>
   </url><url>
@@ -42,9 +45,6 @@
     <lastmod>2025-10-17T17:11:08+02:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/dev-blog/tags/markdown/</loc>
-    <lastmod>2025-10-17T17:11:08+02:00</lastmod>
-  </url><url>
-    <loc>http://localhost:1313/dev-blog/</loc>
     <lastmod>2025-10-17T17:11:08+02:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/dev-blog/tags/patterns/</loc>

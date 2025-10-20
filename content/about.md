@@ -1,9 +1,9 @@
 ---
 title: "About"
 description: "Notes, tutorials and practical tips about building with modern web tooling."
-image: "/images/cover.png"
+image: "/images/coverDev.png"
 ---
-![Cover image](/images/cover.png)
+![Cover image](/images/coverDev.png)
 
 Hello — welcome to this blog.
 
