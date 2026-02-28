@@ -1,0 +1,36 @@
+// Custom variable overrides for Minima 3 — Anime Hacker Theme
+// ----------------------------------------
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap');
+
+$base-font-family: 'Nunito', 'M PLUS Rounded 1c', -apple-system, sans-serif;
+$heading-font-family: 'Nunito', 'M PLUS Rounded 1c', -apple-system, sans-serif;
+$code-font-family: 'Fira Code', 'Consolas', monospace;
+
+// --- Color Palette ---
+// Deep dark blue-green base → warm green accents → cyan highlights
+$background-color: #0c1117;        // Rich dark blue-grey (GitHub Dark style)
+$text-color: #c9d1d9;              // Balanced grey (easy on the eyes)
+$heading-color: #e6edf3;           // Crisp white-ish headings
+$brand-color: #3fb950;             // GitHub-style green (not too neon)
+$brand-color-light: #7ee787;       // Lighter green for highlights
+$brand-color-dimmed: #238636;      // Dimmed for borders / subtle accents
+$brand-color-dark: #0d1f15;        // Very dark green tint
+$border-color-01: #1b2733;         // Subtle card borders
+$border-color-02: #293642;         // Slightly brighter borders
+
+// Accent colors
+$link-base-color: #58a6ff;         // Blue links — clear, readable
+$link-visited-color: #8b949e;      // Muted visited
+$link-hover-color: #7ee787;        // Green hover
+$code-background-color: #161b22;   // Slightly lighter than bg
+
+// Wider content area
+$content-width: 900px;
+
+// Slightly larger base font
+$base-font-size: 17px;
+$base-line-height: 1.7;
+
+// Generous spacing
+$spacing-unit: 32px;

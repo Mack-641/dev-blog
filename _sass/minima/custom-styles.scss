@@ -1,0 +1,500 @@
+// Custom style overrides — Anime Hacker Theme
+// ========================================================
+
+// --- Global ---
+
+body {
+  background-color: $background-color;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba($brand-color, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba($link-base-color, 0.04) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background-color: rgba($brand-color, 0.35);
+  color: #fff;
+}
+
+// Scrollbar
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: $background-color; }
+::-webkit-scrollbar-thumb {
+  background: $border-color-02;
+  border-radius: 4px;
+  &:hover { background: $brand-color-dimmed; }
+}
+
+// --- Header ---
+
+.site-header {
+  border-top: none;
+  border-bottom: 1px solid $border-color-01;
+  background: rgba($background-color, 0.85);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+
+  // Thin accent line at the very top
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, $brand-color, $link-base-color, $brand-color-light);
+  }
+}
+
+.site-title {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, $brand-color-light, $link-base-color);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  &::before {
+    content: "⌨️ ";
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: initial;
+    display: inline-block;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+// --- Navigation links in the header ---
+
+.page-link {
+  color: $text-color !important;
+  font-weight: 600;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: $brand-color-light !important;
+  }
+}
+
+// --- Headings ---
+
+.post-title,
+.page-heading {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: $heading-color;
+}
+
+.post-list-heading {
+  font-weight: 700;
+  color: $heading-color;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid $border-color-01;
+}
+
+// --- Post content ---
+
+.post-content {
+  h2 {
+    margin-top: 2.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid $border-color-01;
+    color: $heading-color;
+  }
+
+  h3 {
+    margin-top: 2rem;
+    color: $brand-color-light;
+  }
+
+  h4 { color: darken($heading-color, 10%); }
+
+  p {
+    margin-bottom: 1.3rem;
+    line-height: 1.8;
+  }
+
+  ul, ol {
+    margin-bottom: 1.3rem;
+    li {
+      margin-bottom: 0.3rem;
+      &::marker { color: $brand-color; }
+    }
+  }
+
+  // Links inside post body
+  a {
+    color: $link-base-color;
+    text-decoration: underline;
+    text-decoration-color: rgba($link-base-color, 0.3);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      text-decoration-color: $link-hover-color;
+      color: $link-hover-color;
+    }
+  }
+
+  // Horizontal rules
+  hr {
+    border: none;
+    height: 1px;
+    background: $border-color-01;
+    margin: 2.5rem 0;
+  }
+}
+
+// --- Code ---
+
+code {
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 0.88em;
+  background-color: $code-background-color !important;
+  color: $brand-color-light;
+  border: 1px solid $border-color-01;
+}
+
+pre {
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  overflow-x: auto;
+  line-height: 1.55;
+  background-color: $code-background-color !important;
+  border: 1px solid $border-color-01;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+
+  > code {
+    padding: 0;
+    border: none;
+    font-size: 0.85em;
+    background-color: transparent !important;
+    color: inherit;
+  }
+}
+
+// --- Post cards (home page) ---
+
+.post-list {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+
+  > li {
+    padding: 0;
+    border: 1px solid $border-color-01;
+    border-radius: 14px;
+    background: $code-background-color;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        0 12px 28px rgba(0,0,0,0.35),
+        0 0 0 1px rgba($brand-color, 0.15);
+      border-color: $brand-color-dimmed;
+    }
+  }
+
+  // Card cover image
+  > li img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    border-bottom: 1px solid $border-color-01;
+    transition: filter 0.3s ease, transform 0.4s ease;
+  }
+
+  > li:hover img {
+    filter: brightness(1.1) contrast(1.05);
+    transform: scale(1.02);
+  }
+
+  // Card body text area
+  > li .post-meta,
+  > li h3,
+  > li .post-excerpt {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .post-meta {
+    display: block;
+    padding-top: 1rem;
+    font-size: 0.82rem;
+    color: $link-visited-color;
+    font-family: $code-font-family;
+    letter-spacing: 0.3px;
+  }
+
+  h3 {
+    margin-top: 0.35rem;
+    margin-bottom: 0;
+  }
+
+  .post-link {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: $heading-color;
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: $brand-color-light;
+    }
+  }
+
+  .post-excerpt {
+    padding-bottom: 1.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: $text-color;
+    opacity: 0.85;
+  }
+}
+
+// --- Footer ---
+
+.site-footer {
+  border-top: 1px solid $border-color-01;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  margin-top: 4rem;
+
+  .footer-col-wrapper {
+    color: $link-visited-color;
+    font-size: 0.9rem;
+  }
+
+  a {
+    color: $link-base-color;
+    &:hover { color: $brand-color-light; }
+  }
+}
+
+// --- General links ---
+
+a {
+  transition: color 0.15s ease;
+}
+
+// --- Blockquotes ---
+
+blockquote {
+  border-left: 3px solid $brand-color-dimmed;
+  padding: 0.75rem 1.25rem;
+  margin-left: 0;
+  font-style: italic;
+  background: rgba($brand-color, 0.04);
+  border-radius: 0 8px 8px 0;
+  color: $text-color;
+
+  p:last-child { margin-bottom: 0; }
+}
+
+// --- Post images ---
+
+.post-content img {
+  border-radius: 10px;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  margin: 1.5rem auto 0.5rem auto;
+  display: block;
+  border: 1px solid $border-color-01;
+}
+
+.post-content img + em {
+  display: block;
+  text-align: center;
+  font-size: 0.88rem;
+  color: $link-visited-color;
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+// --- Tables ---
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+
+  th, td {
+    padding: 0.6rem 0.9rem;
+    border: 1px solid $border-color-01;
+  }
+
+  th {
+    background: $code-background-color;
+    font-weight: 700;
+    color: $heading-color;
+    text-align: left;
+  }
+
+  tr:nth-child(even) td {
+    background: rgba(255,255,255,0.015);
+  }
+}
+
+// --- Search ---
+
+.search-wrap {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $link-visited-color;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.7rem 1rem 0.7rem 2.5rem;
+  border-radius: 10px;
+  border: 1px solid $border-color-02;
+  background: $code-background-color;
+  color: $text-color;
+  font-size: 0.95rem;
+  font-family: $base-font-family;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+
+  // Search icon via pseudo-element workaround (set on .search-wrap instead)
+  &::placeholder {
+    color: $link-visited-color;
+    opacity: 0.75;
+  }
+
+  &:focus {
+    border-color: $link-base-color;
+    box-shadow: 0 0 0 3px rgba($link-base-color, 0.1);
+  }
+}
+
+.search-results {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.75rem;
+
+  .search-result-item {
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid $border-color-01;
+    border-radius: 12px;
+    background: $code-background-color;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      border-color: $brand-color-dimmed;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .post-link {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: $heading-color;
+      text-decoration: none;
+      &:hover { color: $brand-color-light; }
+    }
+
+    .post-meta {
+      display: block;
+      margin: 0.25rem 0 0.5rem;
+      font-size: 0.82rem;
+      color: $link-visited-color;
+      font-family: $code-font-family;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: $text-color;
+      opacity: 0.85;
+    }
+  }
+
+  .search-no-results {
+    color: $link-visited-color;
+    font-style: italic;
+    padding: 0.75rem 0;
+  }
+}
+
+// --- Pagination ---
+
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border-color-01;
+}
+
+.pagination-btn {
+  display: inline-block;
+  padding: 0.5rem 1.15rem;
+  border-radius: 8px;
+  border: 1px solid $brand-color-dimmed;
+  color: $brand-color-light;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  background: transparent;
+
+  &:hover {
+    background: $brand-color-dimmed;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba($brand-color, 0.2);
+  }
+
+  &--disabled {
+    border-color: $border-color-01;
+    color: darken($text-color, 30%);
+    cursor: default;
+    opacity: 0.45;
+    &:hover { background: transparent; color: darken($text-color, 30%); box-shadow: none; }
+  }
+}
+
+.pagination-info {
+  font-family: $code-font-family;
+  font-size: 0.85rem;
+  color: $link-visited-color;
+}
+
+// --- Responsive ---
+
+@media (min-width: 680px) {
+  .post-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@include media-query($on-palm) {
+  .post-content h2 { font-size: 1.4rem; }
+  pre { padding: 0.9rem; font-size: 0.84em; }
+  .post-list > li img { height: 140px; }
+}

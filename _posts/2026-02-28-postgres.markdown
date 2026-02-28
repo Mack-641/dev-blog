@@ -1,0 +1,551 @@
+---
+layout: post
+title: "Postgres Command Cheatsheet"
+date: 2026-02-28 19:30:15 +0000
+categories: database sql
+tags: ["postgres","cheatsheet","database"]
+image: /assets/images/postgres.jpg
+---
+
+A compact Postgres command & workflow cheat-sheet for daily database tasks. Copy commands and adapt them to your environment.
+
+
+## Quick start
+
+Run locally with Docker:
+
+```bash
+docker run --name pg \
+  -e POSTGRES_PASSWORD=secret \
+  -p 5432:5432 \
+  -d postgres:15
+```
+
+Connect with psql:
+
+```bash
+psql "host=localhost port=5432 user=postgres dbname=postgres password=secret"
+# or using flags
+psql -h localhost -p 5432 -U postgres -d postgres
+```
+
+Using a connection string env variable (recommended):
+
+```bash
+export DATABASE_URL="postgres://postgres:secret@localhost:5432/mydb"
+psql $DATABASE_URL
+```
+
+---
+
+## psql basics
+
+Connect:
+
+```
+psql -h host -p 5432 -U user -d dbname
+```
+
+Common interactive commands:
+
+| Command | Description |
+|---|---|
+| `\l` | list databases |
+| `\c dbname` | connect to a database |
+| `\dt` | list tables in current schema |
+| `\dt *.*` | list tables in all schemas |
+| `\d+ table` | describe a table (columns, indexes, constraints) |
+| `\di` | list indexes |
+| `\dv` | list views |
+| `\df` | list functions |
+| `\dn` | list schemas |
+| `\du` | list roles/users |
+| `\dp` | list table privileges |
+| `\conninfo` | show current connection info |
+| `\timing` | toggle query execution time |
+| `\x` | toggle expanded output mode |
+| `\e` | open query in editor |
+| `\i file.sql` | execute a SQL file |
+| `\o file.txt` | send output to a file |
+| `\q` | quit |
+
+Run psql non-interactively:
+
+```bash
+psql -U postgres -d mydb -c "SELECT count(*) FROM users;"
+psql -U postgres -d mydb -f script.sql
+psql -U postgres -d mydb -c "\copy users FROM 'users.csv' CSV HEADER"
+```
+
+---
+
+## Databases & schemas
+
+```sql
+-- Create and drop databases
+CREATE DATABASE myapp;
+CREATE DATABASE myapp OWNER deployer ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8';
+DROP DATABASE myapp;
+DROP DATABASE IF EXISTS myapp;
+
+-- Schemas
+CREATE SCHEMA analytics;
+DROP SCHEMA analytics CASCADE;
+SET search_path TO analytics, public;  -- prefer analytics tables first
+```
+
+---
+
+## Roles & permissions
+
+```sql
+-- Create role and DB
+CREATE ROLE deployer WITH LOGIN PASSWORD 's3cret';
+CREATE ROLE readonly WITH LOGIN PASSWORD 'r3adonly';
+CREATE DATABASE myapp OWNER deployer;
+
+-- Grant on database
+GRANT CONNECT ON DATABASE myapp TO deployer;
+GRANT CONNECT ON DATABASE myapp TO readonly;
+
+-- Grant on schema
+GRANT USAGE ON SCHEMA public TO deployer;
+GRANT USAGE ON SCHEMA public TO readonly;
+
+-- Grant on tables
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO deployer;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly;
+
+-- Make grants apply to future tables too
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO deployer;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT ON TABLES TO readonly;
+
+-- Grant on sequences (needed for INSERT with serial/bigserial)
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO deployer;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO deployer;
+
+-- Revoke
+REVOKE INSERT ON users FROM readonly;
+
+-- Superuser/admin
+ALTER ROLE deployer CREATEDB;
+ALTER ROLE deployer WITH SUPERUSER;     -- use sparingly
+
+-- Change password
+ALTER ROLE deployer WITH PASSWORD 'newpassword';
+```
+
+---
+
+## Tables & data types
+
+```sql
+CREATE TABLE users (
+  id          BIGSERIAL PRIMARY KEY,
+  email       TEXT NOT NULL UNIQUE,
+  name        TEXT,
+  status      TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','inactive')),
+  metadata    JSONB,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Alter table
+ALTER TABLE users ADD COLUMN phone TEXT;
+ALTER TABLE users DROP COLUMN phone;
+ALTER TABLE users ALTER COLUMN name SET NOT NULL;
+ALTER TABLE users RENAME COLUMN name TO full_name;
+ALTER TABLE users RENAME TO app_users;
+
+-- Copy a table structure
+CREATE TABLE users_backup AS TABLE users WITH NO DATA;
+
+-- Truncate (fast delete all rows)
+TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+```
+
+---
+
+## Indexes
+
+```sql
+-- Basic index
+CREATE INDEX idx_users_email ON users(email);
+
+-- Unique index
+CREATE UNIQUE INDEX idx_users_email ON users(email);
+
+-- Partial index (only index active users)
+CREATE INDEX idx_active_users ON users(email) WHERE status = 'active';
+
+-- Multi-column index
+CREATE INDEX idx_orders_user_date ON orders(user_id, created_at DESC);
+
+-- GIN index for JSONB
+CREATE INDEX idx_users_metadata ON users USING GIN(metadata);
+
+-- Full-text search index
+CREATE INDEX idx_posts_fts ON posts USING GIN(to_tsvector('english', body));
+
+-- Build without locking the table (best for production)
+CREATE INDEX CONCURRENTLY idx_users_phone ON users(phone);
+DROP INDEX CONCURRENTLY idx_users_phone;
+
+-- List all indexes on a table
+SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'users';
+```
+
+---
+
+## Queries & common patterns
+
+```sql
+-- Upsert (INSERT ... ON CONFLICT)
+INSERT INTO users (email, name)
+VALUES ('a@example.com', 'Alice')
+ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name;
+
+-- Upsert — do nothing on conflict
+INSERT INTO users (email) VALUES ('a@example.com')
+ON CONFLICT DO NOTHING;
+
+-- Returning inserted/updated rows
+INSERT INTO users (email) VALUES ('b@example.com') RETURNING id, created_at;
+
+-- Window functions
+SELECT id, name, salary,
+  RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS rank
+FROM employees;
+
+-- CTEs
+WITH active_users AS (
+  SELECT * FROM users WHERE status = 'active'
+)
+SELECT * FROM active_users WHERE created_at > NOW() - INTERVAL '30 days';
+
+-- Lateral join
+SELECT u.id, latest.created_at
+FROM users u
+JOIN LATERAL (
+  SELECT created_at FROM orders WHERE user_id = u.id
+  ORDER BY created_at DESC LIMIT 1
+) latest ON TRUE;
+
+-- Full-text search
+SELECT * FROM posts
+WHERE to_tsvector('english', body) @@ to_tsquery('english', 'postgres & tips');
+```
+
+---
+
+## Backup & restore
+
+Logical backup (single DB):
+
+```bash
+pg_dump -h host -U user -Fc -f mydb.dump mydb           # custom format (compressed)
+pg_dump -h host -U user -Fd -j 4 -f mydb_dir mydb       # directory format, 4 parallel jobs
+pg_restore -h host -U user -d mydb_restored mydb.dump
+pg_restore -h host -U user -d mydb_restored -j 4 mydb_dir  # parallel restore
+
+# Plain SQL (human-readable, slower restore)
+pg_dump -h host -U user -f mydb.sql mydb
+psql -h host -U user -d mydb_restored -f mydb.sql
+```
+
+All databases (for migration):
+
+```bash
+pg_dumpall -h host -U postgres -f all.sql
+psql -h host -U postgres -f all.sql
+```
+
+Backup specific tables:
+
+```bash
+pg_dump -h host -U user -t users -t orders -Fc -f partial.dump mydb
+```
+
+Schedule backups with cron:
+
+```bash
+# Daily backup at 2 AM
+0 2 * * * pg_dump -Fc -f /backups/mydb_$(date +\%Y\%m\%d).dump mydb
+# Clean up dumps older than 30 days
+0 3 * * * find /backups -name "*.dump" -mtime +30 -delete
+```
+
+---
+
+## Common maintenance
+
+Vacuum & analyze:
+
+```sql
+VACUUM;                          -- reclaim dead row space
+VACUUM VERBOSE;                  -- with output
+VACUUM ANALYZE;                  -- vacuum + update planner stats
+VACUUM FULL;                     -- reclaim disk space (locks table — use carefully)
+ANALYZE;                         -- update planner stats only
+ANALYZE users;                   -- stats for a single table
+```
+
+Reindex:
+
+```sql
+REINDEX TABLE users;
+REINDEX DATABASE mydb;
+REINDEX TABLE CONCURRENTLY users;   -- non-blocking (Postgres 12+)
+```
+
+Monitor table bloat:
+
+```sql
+SELECT schemaname, tablename,
+  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS total_size,
+  n_dead_tup, n_live_tup,
+  round(n_dead_tup::numeric / NULLIF(n_live_tup,0) * 100, 2) AS dead_ratio
+FROM pg_stat_user_tables
+ORDER BY n_dead_tup DESC;
+```
+
+---
+
+## Performance & introspection
+
+Explain a query:
+
+```sql
+EXPLAIN SELECT * FROM users WHERE email = 'a@example.com';
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'a@example.com';    -- also runs the query
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) SELECT * FROM orders LIMIT 100;
+```
+
+Size queries:
+
+```sql
+SELECT pg_size_pretty(pg_database_size('mydb'));
+SELECT pg_size_pretty(pg_total_relation_size('public.users'));
+SELECT pg_size_pretty(pg_relation_size('public.users'));           -- table data only
+SELECT pg_size_pretty(pg_indexes_size('public.users'));            -- all indexes
+
+-- Top 10 largest tables
+SELECT tablename,
+  pg_size_pretty(pg_total_relation_size('public.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size('public.'||tablename) DESC
+LIMIT 10;
+```
+
+Long-running queries:
+
+```sql
+SELECT pid, now() - query_start AS duration, state, query
+FROM pg_stat_activity
+WHERE state <> 'idle'
+  AND query_start < NOW() - INTERVAL '1 minute'
+ORDER BY duration DESC;
+```
+
+Cancel / kill a query:
+
+```sql
+SELECT pg_cancel_backend(pid);   -- send SIGINT (cancel query, keep connection)
+SELECT pg_terminate_backend(pid); -- send SIGTERM (terminate connection)
+```
+
+Index usage stats:
+
+```sql
+SELECT relname, seq_scan, idx_scan,
+  round(idx_scan::numeric / NULLIF(seq_scan + idx_scan, 0) * 100, 2) AS idx_pct
+FROM pg_stat_user_tables
+ORDER BY seq_scan DESC;
+
+-- Unused indexes (candidates for removal)
+SELECT schemaname, tablename, indexname, idx_scan
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+ORDER BY tablename;
+```
+
+---
+
+## Locks
+
+```sql
+-- View current locks
+SELECT pid, relation::regclass, mode, granted, query
+FROM pg_locks l
+JOIN pg_stat_activity a USING (pid)
+WHERE relation IS NOT NULL;
+
+-- Blocking queries
+SELECT blocked.pid AS blocked_pid,
+       blocking.pid AS blocking_pid,
+       blocked.query AS blocked_query,
+       blocking.query AS blocking_query
+FROM pg_stat_activity blocked
+JOIN pg_stat_activity blocking
+  ON blocking.pid = ANY(pg_blocking_pids(blocked.pid));
+```
+
+---
+
+## Connection & auth tips
+
+Connection string formats:
+
+```
+# URI
+postgres://user:pass@host:5432/dbname?sslmode=require
+
+# Key-value
+host=localhost port=5432 dbname=mydb user=postgres password=secret sslmode=require
+```
+
+pg_hba.conf — reload after changes:
+
+```bash
+sudo systemctl reload postgresql     # Linux systemd
+SELECT pg_reload_conf();             # from within psql
+```
+
+Connection pooling (PgBouncer quick start):
+
+```ini
+# pgbouncer.ini
+[databases]
+mydb = host=127.0.0.1 port=5432 dbname=mydb
+
+[pgbouncer]
+pool_mode = transaction
+max_client_conn = 200
+default_pool_size = 20
+```
+
+---
+
+## Docker / Compose snippet
+
+```yaml
+# docker-compose.yml
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+```
+
+---
+
+## Useful troubleshooting commands
+
+View logs:
+
+```bash
+docker logs -f pg
+journalctl -u postgresql --since "1 hour ago"
+tail -n 200 /var/log/postgresql/postgresql-15-main.log
+```
+
+Active connections:
+
+```sql
+SELECT datname, usename, state, count(*)
+FROM pg_stat_activity
+GROUP BY datname, usename, state
+ORDER BY count DESC;
+
+-- Close all connections to a database (before drop)
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = 'mydb' AND pid <> pg_backend_pid();
+```
+
+---
+
+## Extensions & extras
+
+```sql
+-- Useful extensions
+CREATE EXTENSION IF NOT EXISTS pg_trgm;           -- trigram similarity search
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements; -- query stats
+CREATE EXTENSION IF NOT EXISTS uuid-ossp;          -- UUID generation
+CREATE EXTENSION IF NOT EXISTS pgcrypto;           -- encryption functions
+CREATE EXTENSION IF NOT EXISTS hstore;             -- key-value store type
+CREATE EXTENSION IF NOT EXISTS postgis;            -- geospatial (if installed)
+
+-- List installed extensions
+SELECT name, default_version, installed_version FROM pg_available_extensions
+WHERE installed_version IS NOT NULL;
+
+-- Track slow queries (enable in postgresql.conf first)
+-- shared_preload_libraries = 'pg_stat_statements'
+SELECT query, calls, total_exec_time, mean_exec_time
+FROM pg_stat_statements
+ORDER BY mean_exec_time DESC
+LIMIT 10;
+```
+
+---
+
+## postgresql.conf key settings reference
+
+```
+# Memory
+shared_buffers = 256MB              # ~25% of RAM
+work_mem = 4MB                      # per-sort/hash, multiplied by connections
+maintenance_work_mem = 64MB         # for VACUUM, CREATE INDEX
+
+# WAL & checkpoints
+wal_level = replica
+max_wal_size = 1GB
+checkpoint_completion_target = 0.9
+
+# Logging
+log_min_duration_statement = 1000   # log queries > 1s
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+log_checkpoints = on
+log_connections = on
+log_lock_waits = on
+
+# Autovacuum tuning
+autovacuum = on
+autovacuum_vacuum_cost_delay = 2ms
+```
+
+After changes: `SELECT pg_reload_conf();` or `sudo systemctl reload postgresql`.
+
+---
+
+## Quick tips
+
+- Use one role per application/service — avoid superuser connections in apps.
+- Always test backups by doing a restore.
+- Use `EXPLAIN ANALYZE` before adding or removing indexes.
+- Prefer `BIGSERIAL` or `BIGINT` as primary keys over `SERIAL`/`INT` for large tables.
+- Use `TIMESTAMPTZ` (timestamp with time zone) over `TIMESTAMP` for timestamps.
+- Enable `pg_stat_statements` in production to track slow queries.
+- Keep `autovacuum` enabled and monitor table bloat.
+- Use `CONCURRENTLY` for index creation/removal in production to avoid table locks.
+
+That's it — save this post as your Postgres daily reference and extend with project-specific commands.

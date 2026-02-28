@@ -1,0 +1,60 @@
+# Site settings
+title: Dev Blog
+description: >-
+  Notes, tutorials and practical tips about building with modern web tooling.
+baseurl: ""
+# IMPORTANT: set this to your real domain before deploying
+# e.g. url: "https://mack-641.github.io" or "https://yourdomain.com"
+url: "https://mack-641.github.io"
+
+author:
+  name: Mack
+  github: Mack-641
+
+# Build settings
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-paginate
+
+# Pagination
+paginate: 6
+paginate_path: "/page:num/"
+
+# Silence Sass deprecation warnings from theme internals
+sass:
+  quiet_deps: true
+  silence_deprecations:
+    - import
+
+# Minima v3 settings
+minima:
+  skin: dark
+  date_format: "%b %d, %Y"
+  show_excerpts: true
+  social_links:
+    - title: GitHub
+      icon: github
+      url: "https://github.com/Mack-641"
+
+# Markdown rendering
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    guess_lang: false
+
+# Permalink style
+permalink: /:year/:month/:day/:title/
+
+# Exclude dev files from the built site
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+  - README.md
+  - .devcontainer/

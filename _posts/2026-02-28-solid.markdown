@@ -1,0 +1,336 @@
+---
+layout: post
+title: "SOLID Principles — Practical Examples"
+date: 2026-02-28 19:30:15 +0000
+categories: typescript patterns
+tags: ["solid","design","architecture","patterns"]
+image: /assets/images/solid.jpg
+---
+
+A concise, practical guide to the SOLID object-oriented design principles with short TypeScript examples you can copy and adapt.
+
+
+## Overview
+
+SOLID is an acronym for five design principles that help produce maintainable, testable, and extensible code:
+
+- **S** — Single Responsibility Principle (SRP)
+- **O** — Open/Closed Principle (OCP)
+- **L** — Liskov Substitution Principle (LSP)
+- **I** — Interface Segregation Principle (ISP)
+- **D** — Dependency Inversion Principle (DIP)
+
+These principles work together. Applying one often nudges you toward the others. Below are short explanations with compact TypeScript examples showing both a **violation** and the **fix**.
+
+---
+
+## 1. Single Responsibility Principle (SRP)
+
+> A class should have one, and only one, reason to change.
+
+**Violation** — one class handles fetching, formatting, and saving:
+
+```ts
+class UserService {
+  async getUser(id: string) { /* fetch from DB */ }
+  formatForDisplay(user: any) { /* format HTML */ }
+  saveAsPDF(user: any) { /* generate PDF */ }
+}
+// Any change to display logic or PDF lib forces changes here too
+```
+
+**Fix** — split into focused collaborators:
+
+```ts
+class UserRepository {
+  async fetchUser(id: string): Promise<User> { /* fetch from DB */ }
+  async saveUser(user: User): Promise<void> { /* save to DB */ }
+}
+
+class UserPresenter {
+  formatForDisplay(user: User): string { /* return HTML fragment */ }
+}
+
+class UserExporter {
+  saveAsPDF(user: User): Buffer { /* generate and return PDF bytes */ }
+}
+
+// Usage
+const repo = new UserRepository();
+const presenter = new UserPresenter();
+const user = await repo.fetchUser("u1");
+const html = presenter.formatForDisplay(user);
+```
+
+**Why it matters:** Changes to the PDF library only touch `UserExporter`. UI refactors only touch `UserPresenter`. Each class can be tested in isolation.
+
+---
+
+## 2. Open/Closed Principle (OCP)
+
+> Software entities should be open for extension, but closed for modification.
+
+**Violation** — adding a new discount type requires editing `Checkout`:
+
+```ts
+class Checkout {
+  total(amount: number, discountType: string) {
+    if (discountType === "seasonal") return amount * 0.9;
+    if (discountType === "loyalty") return amount * 0.85;
+    return amount;
+    // Every new type means another if-branch here
+  }
+}
+```
+
+**Fix** — use a strategy interface and inject behavior:
+
+```ts
+interface DiscountStrategy {
+  calculate(amount: number): number;
+}
+
+class NoDiscount implements DiscountStrategy {
+  calculate(a: number) { return a; }
+}
+
+class SeasonalDiscount implements DiscountStrategy {
+  calculate(a: number) { return a * 0.9; }
+}
+
+class LoyaltyDiscount implements DiscountStrategy {
+  constructor(private rate: number) {}
+  calculate(a: number) { return a * (1 - this.rate); }
+}
+
+class Checkout {
+  constructor(private strategy: DiscountStrategy) {}
+  total(amount: number) { return this.strategy.calculate(amount); }
+}
+
+// Usage
+const checkout = new Checkout(new LoyaltyDiscount(0.15));
+checkout.total(100); // 85
+```
+
+Adding a `FlashSaleDiscount` never requires touching `Checkout`.
+
+---
+
+## 3. Liskov Substitution Principle (LSP)
+
+> Subtypes must be substitutable for their base types without altering the correctness of the program.
+
+**Violation** — Square breaks Rectangle's contract:
+
+```ts
+class Rectangle {
+  constructor(protected width: number, protected height: number) {}
+  setWidth(w: number) { this.width = w; }
+  setHeight(h: number) { this.height = h; }
+  area() { return this.width * this.height; }
+}
+
+class Square extends Rectangle {
+  setWidth(w: number) { this.width = this.height = w; }   // side effect!
+  setHeight(h: number) { this.width = this.height = h; }  // side effect!
+}
+
+// Client code that works for Rectangle breaks silently for Square:
+function setDimensions(rect: Rectangle) {
+  rect.setWidth(4);
+  rect.setHeight(5);
+  console.log(rect.area()); // expected 20; gets 25 for Square
+}
+```
+
+**Fix** — prefer composition or a shared abstraction over inheritance:
+
+```ts
+interface Shape {
+  area(): number;
+}
+
+class Rectangle implements Shape {
+  constructor(readonly width: number, readonly height: number) {}
+  area() { return this.width * this.height; }
+}
+
+class Square implements Shape {
+  constructor(readonly side: number) {}
+  area() { return this.side * this.side; }
+}
+
+// Both satisfy Shape — no hidden surprises
+```
+
+**Rule of thumb:** if a subclass needs to override a method in a way that weakens pre-conditions or strengthens post-conditions, that's an LSP violation. Prefer interfaces or composition.
+
+---
+
+## 4. Interface Segregation Principle (ISP)
+
+> Clients should not be forced to depend on methods they do not use.
+
+**Violation** — one fat interface forces unused methods:
+
+```ts
+interface Machine {
+  print(doc: string): void;
+  scan(): string;
+  fax(doc: string): void;
+  staple(): void;
+}
+
+class SimplePrinter implements Machine {
+  print(doc: string) { /* prints */ }
+  scan() { throw new Error("Not supported"); }   // forced stub
+  fax(doc: string) { throw new Error("Not supported"); }
+  staple() { throw new Error("Not supported"); }
+}
+```
+
+**Fix** — split into focused interfaces:
+
+```ts
+interface Printer   { print(doc: string): void; }
+interface Scanner   { scan(): string; }
+interface Fax       { fax(doc: string): void; }
+interface Stapler   { staple(): void; }
+
+class SimplePrinter implements Printer {
+  print(doc: string) { /* ... */ }
+}
+
+class AllInOne implements Printer, Scanner, Fax, Stapler {
+  print(doc: string) { /* ... */ }
+  scan() { return "..."; }
+  fax(doc: string) { /* ... */ }
+  staple() { /* ... */ }
+}
+
+// A client that only prints depends only on Printer
+function printReport(printer: Printer, doc: string) {
+  printer.print(doc);
+}
+```
+
+---
+
+## 5. Dependency Inversion Principle (DIP)
+
+> High-level modules should not depend on low-level modules. Both should depend on abstractions.
+
+**Violation** — `OrderService` is tightly coupled to a concrete logger:
+
+```ts
+class FileLogger {
+  log(msg: string) { /* write to file */ }
+}
+
+class OrderService {
+  private logger = new FileLogger();  // hardcoded dependency
+
+  placeOrder(order: Order) {
+    // process...
+    this.logger.log("order placed");  // impossible to swap or test
+  }
+}
+```
+
+**Fix** — inject an abstraction:
+
+```ts
+interface Logger {
+  log(msg: string): void;
+}
+
+class ConsoleLogger implements Logger {
+  log(m: string) { console.log(m); }
+}
+
+class FileLogger implements Logger {
+  log(m: string) { /* write to file */ }
+}
+
+class SilentLogger implements Logger {
+  log(_m: string) { /* no-op — useful in tests */ }
+}
+
+class OrderService {
+  constructor(private logger: Logger) {}
+
+  placeOrder(order: Order) {
+    // process...
+    this.logger.log(`Order ${order.id} placed`);
+  }
+}
+
+// Production
+const svc = new OrderService(new ConsoleLogger());
+
+// Tests
+const testSvc = new OrderService(new SilentLogger());
+```
+
+DIP is the foundation of dependency injection containers (like InversifyJS, tsyringe, NestJS IoC).
+
+---
+
+## How the principles work together
+
+A practical example tying all five together — an email notification system:
+
+```ts
+// ISP: focused interfaces
+interface EmailSender { send(to: string, subject: string, body: string): Promise<void>; }
+interface TemplateRenderer { render(template: string, data: Record<string, string>): string; }
+
+// DIP: high-level module depends on abstractions
+class NotificationService {
+  constructor(
+    private sender: EmailSender,      // inject
+    private renderer: TemplateRenderer // inject
+  ) {}
+
+  // SRP: only responsible for orchestrating notification
+  async notifyUser(user: User, templateId: string) {
+    const body = this.renderer.render(templateId, { name: user.name });
+    await this.sender.send(user.email, "Welcome!", body);
+  }
+}
+
+// OCP: add new senders without touching NotificationService
+class SendGridEmailSender implements EmailSender {
+  async send(to: string, subject: string, body: string) { /* SendGrid API */ }
+}
+
+class SMTPEmailSender implements EmailSender {
+  async send(to: string, subject: string, body: string) { /* SMTP */ }
+}
+
+// LSP: all senders fully satisfy EmailSender contract
+```
+
+---
+
+## Quick checklist when reviewing code
+
+- **SRP:** Can you describe this class with a single responsibility? If "and" appears in the description, consider splitting.
+- **OCP:** Can you add new behavior by writing new code (not editing existing code)?
+- **LSP:** Can a subclass replace its parent in all existing code without changing behavior?
+- **ISP:** Are your interfaces small enough that implementers never need to stub or throw for unused methods?
+- **DIP:** Do high-level classes reference interfaces/abstractions rather than concrete implementations?
+
+---
+
+## Useful patterns that emerge from SOLID
+
+- **Strategy** — swap algorithms via an interface (OCP, DIP)
+- **Repository** — abstract data access (SRP, DIP)
+- **Factory / DI Container** — construct objects with injected dependencies (DIP)
+- **Decorator** — add behavior without modifying a class (OCP)
+
+Further reading: Robert C. Martin's *Clean Architecture* and *Agile Software Development, Principles, Patterns, and Practices*.
+
+Use these as guidelines, not rigid rules — prefer simplicity and let the code itself signal when a refactor is needed.

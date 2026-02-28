@@ -1,0 +1,359 @@
+---
+layout: post
+title: "Docker Command Cheatsheet"
+date: 2026-02-28 19:30:15 +0000
+categories: docker containers
+tags: ["docker","cheatsheet","containers"]
+image: /assets/images/docker.jpg
+
+render_with_liquid: false
+---
+
+
+A compact, practical Docker command reference for everyday container work — copy commands and adapt them to your setup.
+
+
+## Quick setup
+
+Install Docker Desktop (Windows/macOS) or Docker Engine (Linux). Verify:
+
+```bash
+docker --version
+docker info
+```
+
+Add your user to the `docker` group on Linux to avoid using `sudo`:
+
+```bash
+sudo usermod -aG docker $USER   # log out and back in after
+```
+
+---
+
+## Images
+
+Search, pull, list, remove:
+
+```bash
+docker search nginx
+docker pull nginx:latest
+docker images                      # list local images
+docker images --filter "dangling=false"
+docker rmi image:tag               # remove image
+docker rmi $(docker images -q)     # remove ALL local images (careful)
+```
+
+Build an image from a Dockerfile:
+
+```bash
+docker build -t myapp:1.0 .
+docker build --no-cache -t myapp:latest .
+docker build --target=builder -t myapp:dev .   # multi-stage: stop at a named stage
+docker build --build-arg NODE_ENV=production -t myapp .
+```
+
+Tag & push:
+
+```bash
+docker tag myapp:1.0 myrepo/myapp:1.0
+docker push myrepo/myapp:1.0
+docker pull myrepo/myapp:1.0
+```
+
+Save & load images (useful for air-gapped environments):
+
+```bash
+docker save myapp:1.0 | gzip > myapp.tar.gz
+docker load < myapp.tar.gz
+```
+
+Copy image between registries without pulling locally:
+
+```bash
+docker pull source-registry/myapp:1.0
+docker tag source-registry/myapp:1.0 target-registry/myapp:1.0
+docker push target-registry/myapp:1.0
+```
+
+---
+
+## Containers
+
+Run, list, inspect, stop, remove:
+
+```bash
+docker run --name web -d -p 8080:80 nginx:latest
+docker run --rm -it ubuntu:22.04 bash    # ephemeral interactive shell
+docker ps                                # running containers
+docker ps -a                             # all containers (including stopped)
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+docker logs -f web
+docker logs --tail 100 --since 10m web   # last 100 lines in the past 10 min
+docker exec -it web /bin/sh
+docker exec -it web env                  # inspect environment variables
+docker stop web
+docker kill web                          # SIGKILL (immediate)
+docker rm web
+docker rm $(docker ps -aq -f status=exited)   # remove all stopped containers
+```
+
+Run with volumes & env:
+
+```bash
+docker run -d \
+  --name db \
+  -e POSTGRES_PASSWORD=secret \
+  -v db_data:/var/lib/postgresql/data \
+  --restart unless-stopped \
+  postgres:15
+```
+
+Copy files between host and container:
+
+```bash
+docker cp ./config.json web:/app/config.json
+docker cp web:/app/logs/app.log ./app.log
+```
+
+Detach from a running container without stopping it: `Ctrl+P` then `Ctrl+Q`.
+
+---
+
+## Dockerfile essentials
+
+Minimal Node.js example:
+
+```dockerfile
+# Dockerfile
+FROM node:18-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production
+
+FROM node:18-alpine AS runner
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+Useful instructions:
+
+```dockerfile
+ARG BUILD_VERSION=latest           # build-time variable
+ENV APP_ENV=production             # runtime environment variable
+HEALTHCHECK --interval=30s --timeout=5s CMD curl -f http://localhost:3000/health || exit 1
+ENTRYPOINT ["node"]                # fixed executable
+CMD ["server.js"]                  # default arguments (overridable)
+ONBUILD COPY . /app                # trigger in child images
+```
+
+Best practices:
+
+- Use small base images (alpine/distroless).
+- Use multi-stage builds — only ship runtime artifacts.
+- Pin major versions for reproducible builds.
+- Combine `RUN` instructions to reduce layers.
+- Use `.dockerignore` to exclude `node_modules`, `.git`, etc.
+- Never store secrets in image layers; use build secrets or env vars at runtime.
+
+---
+
+## Docker Compose (v2+)
+
+`docker-compose.yml` example with health checks and dependencies:
+
+```yaml
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "8080:3000"
+    volumes:
+      - ./:/app
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=myapp
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+```
+
+Useful commands:
+
+```bash
+docker compose up --build               # build and start
+docker compose up -d                    # start in background
+docker compose ps
+docker compose logs -f
+docker compose logs -f web              # logs for a single service
+docker compose exec web sh              # shell into a service
+docker compose run --rm web npm test    # one-off command
+docker compose down                     # stop and remove containers
+docker compose down --volumes           # also remove named volumes
+docker compose config                   # validate & view merged config
+docker compose pull                     # pull latest images
+```
+
+Override config for different environments:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+---
+
+## Cleanup & disk space
+
+```bash
+docker images -f dangling=true
+docker image prune                    # remove dangling images
+docker container prune                # remove stopped containers
+docker volume prune                   # remove unused volumes
+docker network prune                  # remove unused networks
+docker system prune                   # all of the above (except volumes)
+docker system prune -a --volumes      # nuclear option
+docker system df                      # show disk usage breakdown
+docker system df -v                   # verbose — per image/container/volume
+```
+
+---
+
+## Networking
+
+```bash
+docker network ls
+docker network create mynet
+docker network inspect bridge
+docker run -d --network mynet --name api myapp
+docker run -d --network mynet --name cache redis:7
+
+# Connect/disconnect a running container
+docker network connect mynet existing-container
+docker network disconnect mynet existing-container
+```
+
+Port inspection:
+
+```bash
+docker port web                        # show port mappings for container
+docker inspect web | grep -i ipaddress
+```
+
+---
+
+## Volumes
+
+```bash
+docker volume ls
+docker volume create mydata
+docker volume inspect mydata
+docker volume rm mydata
+
+# Bind mount (host path) vs named volume
+docker run -v /host/path:/container/path nginx    # bind mount
+docker run -v mydata:/container/path nginx        # named volume
+
+# Read-only mount
+docker run -v $(pwd):/app:ro node:18 node server.js
+```
+
+---
+
+## Health checks & resource limits
+
+```bash
+# Limit CPU and memory
+docker run -d --memory="512m" --cpus="1.5" myapp
+
+# Override health check
+docker run --health-cmd="curl -f http://localhost/ || exit 1" \
+           --health-interval=30s nginx
+```
+
+---
+
+## Debugging & inspection
+
+```bash
+docker inspect <container>              # full JSON details
+docker stats                            # live CPU/memory stats
+docker stats --no-stream                # snapshot
+docker top <container>                  # running processes inside
+docker diff <container>                 # filesystem changes since start
+docker history image:tag                # image layer history
+docker events                           # real-time events stream
+```
+
+---
+
+## Registry authentication
+
+```bash
+docker login registry.example.com
+docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN registry.gitlab.com
+docker logout registry.example.com
+```
+
+---
+
+## Security & permissions
+
+- Run processes as non-root inside containers (`USER` instruction or `--user`).
+- Use read-only filesystems where possible: `--read-only`.
+- Drop unnecessary Linux capabilities: `--cap-drop ALL --cap-add NET_BIND_SERVICE`.
+- Scan images for vulnerabilities: `docker scout cves myapp:latest` or `trivy image myapp:latest`.
+- Never store secrets in Dockerfiles; use Docker secrets, env vars, or a vault.
+
+---
+
+## Quick aliases & one-liners
+
+```bash
+# Shell into a one-off container in the current directory
+docker run --rm -it -v "$(pwd)":/work -w /work node:18 bash
+
+# Tail combined logs across all compose services
+docker compose logs -f
+
+# Stop all running containers
+docker stop $(docker ps -q)
+
+# Remove all containers
+docker rm $(docker ps -aq)
+
+# Get the IP of a container
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' web
+
+# Watch docker stats in a compact table
+docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+```
+
+---
+
+## Helpful resources
+
+- Official docs: <https://docs.docker.com/>
+- Dockerfile best practices: <https://docs.docker.com/develop/develop-images/dockerfile_best-practices/>
+- Docker Scout (image security): <https://docs.docker.com/scout/>
+- Compose spec reference: <https://docs.docker.com/compose/compose-file/>

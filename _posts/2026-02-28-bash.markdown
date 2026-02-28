@@ -1,0 +1,466 @@
+---
+layout: post
+title: "Bash Scripting Cheatsheet"
+date: 2026-02-28 19:30:15 +0000
+categories: scripting bash
+tags: ["bash","cheatsheet","scripting","cli"]
+image: /assets/images/matrix.jpg
+
+---
+
+
+A compact Bash scripting reference for writing reliable shell scripts — copy and adapt to your needs.
+
+
+## Script header & safe defaults
+
+Always start scripts with this:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+```
+
+- `set -e` — exit immediately on error
+- `set -u` — treat unset variables as errors
+- `set -o pipefail` — a pipe fails if any command in it fails
+- `IFS=$'\n\t'` — safer word splitting (avoids issues with spaces in filenames)
+
+---
+
+## Variables
+
+```bash
+name="Alice"
+echo "$name"                # always quote variables
+echo "${name}"              # explicit braces — required for concatenation
+
+# Default values
+echo "${name:-"default"}"   # use default if name is unset or empty
+echo "${name:="default"}"   # assign default if unset
+echo "${name:?"error msg"}" # exit with error if unset
+echo "${name:+"set"}"       # use alternative value if name IS set
+
+# String operations
+file="/path/to/archive.tar.gz"
+echo "${file##*/}"          # basename → archive.tar.gz
+echo "${file%/*}"           # dirname  → /path/to
+echo "${file%%.*}"          # strip longest suffix → /path/to/archive
+echo "${file#*.}"           # strip shortest prefix → tar.gz
+echo "${file//a/A}"         # replace all occurrences
+echo "${#file}"             # length of string
+
+# Read-only
+readonly MAX_RETRIES=5
+
+# Arrays
+fruits=("apple" "banana" "cherry")
+echo "${fruits[0]}"         # first element
+echo "${fruits[@]}"         # all elements
+echo "${#fruits[@]}"        # array length
+fruits+=("date")            # append
+for f in "${fruits[@]}"; do echo "$f"; done
+
+# Associative arrays (bash 4+)
+declare -A config
+config[host]="localhost"
+config[port]="5432"
+echo "${config[host]}"
+for key in "${!config[@]}"; do echo "$key=${config[$key]}"; done
+```
+
+---
+
+## Input / output
+
+```bash
+# Read user input
+read -p "Enter name: " name
+read -rsp "Password: " password; echo   # silent, raw
+
+# Read a file line by line
+while IFS= read -r line; do
+  echo "Line: $line"
+done < input.txt
+
+# Read into array
+mapfile -t lines < input.txt   # bash 4+
+
+# Here-doc
+cat <<EOF
+Hello $name
+This is a multi-line string.
+EOF
+
+# Here-doc with no variable expansion
+cat <<'EOF'
+Literal $variable — not expanded.
+EOF
+
+# Redirect
+echo "log" >> file.log         # append stdout
+command 2>>errors.log          # append stderr
+command &>>all.log             # append both
+command 2>&1 | tee output.log  # both to file and terminal
+exec > >(tee -a script.log) 2>&1  # redirect all output for rest of script
+```
+
+---
+
+## Conditionals
+
+```bash
+# File tests
+if [[ -f "$file" ]]; then echo "is a file"; fi
+if [[ -d "$dir" ]]; then echo "is a directory"; fi
+if [[ -e "$path" ]]; then echo "exists"; fi
+if [[ -r "$file" ]]; then echo "readable"; fi
+if [[ -w "$file" ]]; then echo "writable"; fi
+if [[ -x "$file" ]]; then echo "executable"; fi
+if [[ -s "$file" ]]; then echo "non-empty"; fi
+if [[ ! -f "$file" ]]; then echo "does not exist"; fi
+
+# String tests
+if [[ -z "$str" ]]; then echo "empty"; fi
+if [[ -n "$str" ]]; then echo "non-empty"; fi
+if [[ "$a" == "$b" ]]; then echo "equal"; fi
+if [[ "$a" != "$b" ]]; then echo "not equal"; fi
+if [[ "$str" == *"substring"* ]]; then echo "contains"; fi   # glob
+if [[ "$str" =~ ^[0-9]+$ ]]; then echo "all digits"; fi      # regex
+
+# Numeric tests
+if (( a > b )); then echo "a is greater"; fi
+if [[ "$a" -eq "$b" ]]; then echo "equal (numeric)"; fi
+# -eq -ne -lt -le -gt -ge
+
+# Compound conditions
+if [[ -f "$file" && -r "$file" ]]; then echo "readable file"; fi
+if [[ "$a" -lt 0 || "$a" -gt 100 ]]; then echo "out of range"; fi
+
+# Short-circuit
+[[ -f "$file" ]] && echo "exists"
+[[ -f "$file" ]] || { echo "missing"; exit 1; }
+
+# Case statement
+case "$env" in
+  production|prod) echo "prod mode" ;;
+  staging)         echo "staging mode" ;;
+  *)               echo "unknown: $env" ;;
+esac
+```
+
+---
+
+## Loops
+
+```bash
+# C-style for loop
+for (( i=0; i<5; i++ )); do echo "$i"; done
+
+# Range
+for i in {1..10}; do echo "$i"; done
+for i in {0..100..10}; do echo "$i"; done   # step 10
+
+# Iterate over arguments
+for arg in "$@"; do echo "$arg"; done
+
+# While loop
+count=0
+while (( count < 5 )); do
+  echo "$count"
+  (( count++ ))
+done
+
+# Until loop
+until [[ -f "$file" ]]; do
+  echo "Waiting for $file..."
+  sleep 2
+done
+
+# Loop control
+break     # exit loop
+continue  # skip to next iteration
+
+# Read file in a loop
+while IFS=',' read -r name age city; do
+  echo "$name is $age years old from $city"
+done < data.csv
+```
+
+---
+
+## Functions
+
+```bash
+greet() {
+  local name="${1:-"World"}"   # local scope — best practice
+  echo "Hello, $name!"
+}
+
+greet "Alice"
+greet            # uses default
+
+# Return values (functions return exit codes, not strings)
+is_even() {
+  (( $1 % 2 == 0 ))   # returns 0 (true) if even, 1 (false) if odd
+}
+if is_even 4; then echo "even"; fi
+
+# Capture output
+result=$(greet "Bob")
+echo "$result"
+
+# Pass array to function
+process_items() {
+  local -n items="$1"   # nameref (bash 4.3+)
+  for item in "${items[@]}"; do
+    echo "$item"
+  done
+}
+my_list=("x" "y" "z")
+process_items my_list
+```
+
+---
+
+## Exit codes & error handling
+
+```bash
+# Exit codes: 0 = success, 1-255 = failure
+command && echo "ok" || echo "failed"
+exit 1   # exit with error
+
+# Check exit code explicitly
+if ! cp src dest; then
+  echo "Copy failed" >&2   # write to stderr
+  exit 1
+fi
+
+# Trap errors and perform cleanup
+cleanup() {
+  echo "Cleaning up..."
+  rm -f /tmp/lock.$$
+}
+trap cleanup EXIT          # runs on any exit
+trap 'echo "Error on line $LINENO"' ERR   # runs on error
+
+# Trap signals
+trap 'echo "Interrupted"; exit 130' INT TERM
+
+# Error function
+die() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+[[ -f "$config" ]] || die "Config file not found: $config"
+```
+
+---
+
+## Script arguments
+
+```bash
+$0   # script name
+$1   # first argument
+$@   # all arguments as separate words (prefer this)
+$*   # all arguments as one word
+$#   # number of arguments
+$?   # exit code of last command
+$$   # PID of current script
+
+# Shift arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--name) name="$2"; shift 2 ;;
+    -v|--verbose) verbose=true; shift ;;
+    --) shift; break ;;
+    *) echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+done
+
+# getopts (POSIX)
+while getopts ":n:vh" opt; do
+  case "$opt" in
+    n) name="$OPTARG" ;;
+    v) verbose=true ;;
+    h) usage; exit 0 ;;
+    :) echo "Option -$OPTARG requires an argument" >&2; exit 1 ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+```
+
+---
+
+## Useful built-in commands
+
+```bash
+# Arithmetic
+result=$(( 5 * 3 + 2 ))
+(( total += 10 ))
+echo "scale=2; 10/3" | bc   # floating point via bc
+
+# Command substitution
+today=$(date +%Y-%m-%d)
+lines=$(wc -l < file.txt)
+
+# Process substitution
+diff <(sort file1.txt) <(sort file2.txt)
+while read -r line; do ...; done < <(command)
+
+# printf (prefer over echo)
+printf "Hello, %s! You have %d messages.\n" "$name" "$count"
+printf "%-20s %5d\n" "$name" "$value"   # left-align, right-align columns
+
+# eval (use sparingly — security risk)
+cmd="ls -la"
+eval "$cmd"
+```
+
+---
+
+## String & path utilities
+
+```bash
+# dirname / basename
+dir=$(dirname "$0")          # directory of script
+base=$(basename "$file" .txt) # filename without extension
+
+# Trim whitespace
+trimmed="${var#"${var%%[![:space:]]*}"}"  # leading
+# Easier with xargs:
+trimmed=$(echo "$var" | xargs)
+
+# Lowercase / uppercase (bash 4+)
+echo "${str,,}"   # lowercase
+echo "${str^^}"   # uppercase
+
+# String contains
+[[ "$haystack" == *"$needle"* ]] && echo "found"
+
+# URL encode (using printf)
+urlencode() {
+  printf '%s' "$1" | python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.stdin.read()))"
+}
+```
+
+---
+
+## Temporary files & locks
+
+```bash
+# Safe temp file
+tmpfile=$(mktemp)
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpfile" "$tmpdir"' EXIT
+
+# Lock file to prevent concurrent runs
+lockfile="/tmp/$(basename "$0").lock"
+if ( set -C; echo $$ > "$lockfile" ) 2>/dev/null; then
+  trap 'rm -f "$lockfile"' EXIT
+else
+  echo "Already running (PID $(cat $lockfile))" >&2
+  exit 1
+fi
+```
+
+---
+
+## Debugging
+
+```bash
+set -x          # print each command before executing
+set +x          # turn off tracing
+bash -x script.sh  # trace from outside
+
+# Verbose output
+set -v          # print lines as read
+
+# Dry run pattern
+DRY_RUN=${DRY_RUN:-false}
+run() {
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "[DRY RUN] $*"
+  else
+    "$@"
+  fi
+}
+run rm -rf /tmp/olddata
+```
+
+Run scripts through ShellCheck before deploying:
+
+```bash
+shellcheck script.sh
+```
+
+---
+
+## Reusable script template
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ── Config ─────────────────────────────────────────────
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_NAME="$(basename "$0")"
+LOG_FILE="${LOG_FILE:-/tmp/${SCRIPT_NAME}.log}"
+
+# ── Helpers ────────────────────────────────────────────
+log()  { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
+die()  { echo "ERROR: $*" >&2; exit 1; }
+usage() {
+  cat <<EOF
+Usage: $SCRIPT_NAME [OPTIONS]
+
+Options:
+  -n, --name NAME   Your name
+  -v, --verbose     Enable verbose output
+  -h, --help        Show this help
+EOF
+}
+
+# ── Argument parsing ───────────────────────────────────
+NAME=""
+VERBOSE=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--name)    NAME="$2"; shift 2 ;;
+    -v|--verbose) VERBOSE=true; shift ;;
+    -h|--help)    usage; exit 0 ;;
+    *)            die "Unknown option: $1" ;;
+  esac
+done
+
+# ── Validation ─────────────────────────────────────────
+[[ -n "$NAME" ]] || die "--name is required"
+
+# ── Cleanup ────────────────────────────────────────────
+cleanup() { log "Done."; }
+trap cleanup EXIT
+
+# ── Main ───────────────────────────────────────────────
+main() {
+  log "Starting $SCRIPT_NAME"
+  [[ "$VERBOSE" == true ]] && set -x
+  log "Hello, $NAME!"
+}
+
+main "$@"
+```
+
+---
+
+## Quick tips
+
+- Always quote `"$variables"` to handle spaces and special characters.
+- Use `[[ ]]` instead of `[ ]` in bash — it's more forgiving and supports `=~` and `&&`.
+- Use `local` for all function variables to avoid leaking into global scope.
+- Prefer `printf` over `echo` for portability and formatting.
+- Use `shellcheck` before committing any script.
+- Use `mktemp` instead of hardcoded `/tmp/file` to avoid collisions.
+- Test scripts with `bash -n script.sh` to check syntax without running.
+
+That's it — save this as your Bash scripting reference and extend with project-specific helpers.

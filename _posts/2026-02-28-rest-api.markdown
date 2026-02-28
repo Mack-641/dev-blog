@@ -1,0 +1,481 @@
+---
+layout: post
+title: "REST API Design Best Practices"
+date: 2026-02-28 19:30:15 +0000
+categories: api design
+tags: ["rest","api","design","best-practices","http"]
+image: /assets/images/terminal.jpg
+
+---
+
+
+A practical guide to designing clean, consistent, and maintainable REST APIs — with concrete examples of what to do and what to avoid.
+
+
+## Core principles
+
+A well-designed REST API should be:
+
+- **Intuitive** — a developer can guess endpoints and behaviour correctly.
+- **Consistent** — the same patterns are applied everywhere.
+- **Predictable** — responses follow a defined contract.
+- **Evolvable** — it can change without breaking existing clients.
+
+---
+
+## URL design
+
+### Use nouns, not verbs
+
+Resources are things — use nouns in the plural. HTTP methods express the action.
+
+```
+# Bad
+GET  /getUsers
+POST /createUser
+PUT  /updateUser/1
+DELETE /deleteUser/1
+
+# Good
+GET    /users
+POST   /users
+PUT    /users/1
+DELETE /users/1
+```
+
+### Hierarchy for relationships
+
+Model relationships as nested paths, but avoid nesting deeper than two levels.
+
+```
+GET  /users/42/orders          # orders for user 42
+GET  /users/42/orders/7        # a specific order
+
+# Avoid deep nesting — flatten instead
+GET  /orders?userId=42         # better for deeply nested resources
+GET  /orders/7/items/3         # acceptable for tight ownership
+```
+
+### Use kebab-case for multi-word resources
+
+```
+# Bad
+/userProfiles
+/user_profiles
+
+# Good
+/user-profiles
+/shipping-addresses
+```
+
+### Filter, sort & paginate via query strings
+
+```
+GET /users?status=active
+GET /users?status=active&role=admin
+GET /products?sort=price&order=asc
+GET /products?sort=-created_at          # "-" prefix for descending
+GET /posts?page=2&limit=20
+GET /posts?cursor=eyJpZCI6MTB9          # cursor pagination (preferred at scale)
+GET /users?fields=id,name,email         # sparse fieldsets
+GET /products?q=coffee&category=beans   # full-text search
+```
+
+---
+
+## HTTP methods
+
+| Method | Meaning | Body? | Idempotent? | Safe? |
+|---|---|---|---|---|
+| `GET` | Read | No | Yes | Yes |
+| `POST` | Create | Yes | No | No |
+| `PUT` | Replace | Yes | Yes | No |
+| `PATCH` | Partial update | Yes | No | No |
+| `DELETE` | Delete | No | Yes | No |
+| `HEAD` | Metadata only | No | Yes | Yes |
+| `OPTIONS` | CORS preflight | No | Yes | Yes |
+
+Rules of thumb:
+- `PUT` replaces the full resource — omitted fields are deleted.
+- `PATCH` updates only the provided fields.
+- `POST /users` creates a new resource; `PUT /users/1` replaces a known resource.
+- Use `POST` for actions that don't map cleanly to CRUD: `POST /orders/7/cancel`.
+
+---
+
+## HTTP status codes
+
+Always return meaningful status codes. Never return `200 OK` with an error body.
+
+**2xx — Success**
+
+```
+200 OK              — GET, PUT, PATCH succeeded
+201 Created         — POST that created a resource (include Location header)
+204 No Content      — DELETE or PATCH with no response body
+202 Accepted        — async operation started (include status/polling URL)
+```
+
+**3xx — Redirection**
+
+```
+301 Moved Permanently  — resource has permanently moved (update your bookmarks)
+304 Not Modified       — client cache is still valid (use with ETags)
+```
+
+**4xx — Client error**
+
+```
+400 Bad Request        — malformed request, validation failure
+401 Unauthorized       — not authenticated (missing/invalid credentials)
+403 Forbidden          — authenticated but not authorized
+404 Not Found          — resource doesn't exist
+405 Method Not Allowed — e.g. DELETE on a read-only resource
+409 Conflict           — e.g. duplicate resource, optimistic lock conflict
+410 Gone               — resource permanently deleted
+422 Unprocessable      — syntactically valid but semantically wrong
+429 Too Many Requests  — rate limit exceeded
+```
+
+**5xx — Server error**
+
+```
+500 Internal Server Error — unexpected server failure
+502 Bad Gateway           — upstream service failed
+503 Service Unavailable   — server is down or overloaded
+504 Gateway Timeout       — upstream service timed out
+```
+
+---
+
+## Request & response bodies
+
+### Use JSON consistently
+
+```
+Content-Type: application/json
+Accept: application/json
+```
+
+### Consistent response shape
+
+Pick a wrapper structure and use it everywhere:
+
+```json
+// Single resource
+{
+  "data": {
+    "id": "u_123",
+    "name": "Alice",
+    "email": "alice@example.com",
+    "createdAt": "2025-01-15T09:30:00Z"
+  }
+}
+
+// Collection
+{
+  "data": [ ... ],
+  "meta": {
+    "total": 342,
+    "page": 1,
+    "limit": 20,
+    "hasMore": true
+  }
+}
+
+// Error
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": [
+      { "field": "email", "message": "must be a valid email address" },
+      { "field": "age",   "message": "must be at least 18" }
+    ]
+  }
+}
+```
+
+### Field naming conventions
+
+Use **camelCase** in JSON (most API conventions) or **snake_case** — pick one and stick to it.
+
+```json
+// camelCase (common in JS/TS ecosystems)
+{ "firstName": "Alice", "createdAt": "2025-01-15T09:30:00Z" }
+
+// snake_case (common in Python/Ruby ecosystems)
+{ "first_name": "Alice", "created_at": "2025-01-15T09:30:00Z" }
+```
+
+### Use ISO 8601 for dates and times
+
+```json
+{
+  "createdAt": "2025-01-15T09:30:00Z",
+  "scheduledAt": "2025-03-01T14:00:00+02:00",
+  "birthDate": "1990-05-20"
+}
+```
+
+Always use UTC or include a timezone offset. Never use Unix timestamps in response bodies (use them in query params for range queries only).
+
+---
+
+## IDs
+
+Prefer opaque string IDs over auto-increment integers in public APIs:
+
+```json
+// Avoid — leaks record count, easy to enumerate
+{ "id": 1042 }
+
+// Prefer — opaque, harder to enumerate, portable
+{ "id": "u_9kB2xQmT4vLp" }  // prefixed nanoid
+{ "id": "01HGX..." }         // ULID
+{ "id": "550e8400-..." }     // UUID v4
+```
+
+---
+
+## Versioning
+
+Version your API to allow evolution without breaking clients.
+
+**URL versioning** (most common, most explicit):
+
+```
+https://api.example.com/v1/users
+https://api.example.com/v2/users
+```
+
+**Header versioning** (cleaner URLs):
+
+```
+GET /users
+Accept: application/vnd.example.v2+json
+```
+
+**Versioning rules:**
+- Never make breaking changes in an existing version.
+- Deprecate slowly: add a `Deprecation` header and announce a sunset date.
+- An additive change (new fields, new endpoints) is not a breaking change.
+
+Breaking changes include: removing fields, changing field types, changing status code semantics, removing endpoints.
+
+---
+
+## Authentication & authorization
+
+**Authentication** — who are you?
+
+```
+# Bearer token (JWT, OAuth2 access token)
+Authorization: Bearer eyJhbGci...
+
+# API key (simpler, for server-to-server)
+Authorization: Api-Key sk_live_abc123
+X-API-Key: sk_live_abc123
+```
+
+**Authorization** — what are you allowed to do?
+
+- Return `401` for unauthenticated requests (not 403).
+- Return `403` for authenticated but unauthorized requests.
+- Never leak whether a resource exists if the user isn't authorized: return `404` instead of `403` when the information itself is sensitive.
+
+---
+
+## Pagination
+
+**Offset pagination** (simple, but slow at scale):
+
+```
+GET /posts?page=3&limit=20
+
+{
+  "data": [...],
+  "meta": { "total": 500, "page": 3, "limit": 20 }
+}
+```
+
+**Cursor pagination** (preferred for large datasets and real-time feeds):
+
+```
+GET /posts?limit=20
+GET /posts?cursor=eyJpZCI6MjB9&limit=20   # next page
+
+{
+  "data": [...],
+  "meta": {
+    "nextCursor": "eyJpZCI6NDB9",
+    "hasMore": true
+  }
+}
+```
+
+Cursor pagination is stable under inserts/deletes and performs well on large tables (no `OFFSET` scan).
+
+---
+
+## Rate limiting
+
+Always rate-limit public APIs. Include headers so clients can back off gracefully:
+
+```
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 842
+X-RateLimit-Reset: 1714000000
+Retry-After: 30              # on 429 responses
+```
+
+Return `429 Too Many Requests` when the limit is exceeded.
+
+---
+
+## Caching
+
+```
+# Instruct clients to cache for 5 minutes
+Cache-Control: public, max-age=300
+
+# No caching (e.g. authenticated, personalized data)
+Cache-Control: no-store
+
+# Conditional requests with ETags
+ETag: "33a64df5"
+If-None-Match: "33a64df5"   # client sends this; server returns 304 if unchanged
+
+# Conditional requests with Last-Modified
+Last-Modified: Wed, 15 Jan 2025 09:30:00 GMT
+If-Modified-Since: Wed, 15 Jan 2025 09:30:00 GMT
+```
+
+---
+
+## CORS
+
+For browser-facing APIs, return the correct CORS headers:
+
+```
+Access-Control-Allow-Origin: https://app.example.com   # specific origin
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization
+Access-Control-Max-Age: 86400     # cache preflight for 1 day
+```
+
+Avoid `Access-Control-Allow-Origin: *` for authenticated APIs — it weakens security.
+
+---
+
+## Error design
+
+Good errors are **actionable**. Include enough information for the client to fix the request without guessing.
+
+```json
+// Bad — vague and unhelpful
+{ "error": "Bad request" }
+
+// Good — specific, actionable, machine-readable
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The request body contains invalid fields.",
+    "details": [
+      {
+        "field": "email",
+        "code": "INVALID_FORMAT",
+        "message": "Must be a valid email address."
+      },
+      {
+        "field": "birthDate",
+        "code": "TOO_YOUNG",
+        "message": "User must be at least 18 years old."
+      }
+    ],
+    "requestId": "req_4xT7bQzW",
+    "docsUrl": "https://docs.example.com/errors/VALIDATION_ERROR"
+  }
+}
+```
+
+Include a `requestId` in all responses (success and error) to make log correlation easy.
+
+---
+
+## Idempotency
+
+For critical mutations (payments, order placement), support an `Idempotency-Key` header:
+
+```
+POST /charges
+Idempotency-Key: a8098c1a-f86e-11da-bd1a-00112444be1e
+```
+
+The server stores results keyed by this value and returns the same response on retries. This prevents duplicate charges when a client retries after a network timeout.
+
+---
+
+## OpenAPI / documentation
+
+Document your API with an OpenAPI 3.x spec. Minimal example:
+
+```yaml
+openapi: "3.1.0"
+info:
+  title: My API
+  version: "1.0"
+
+paths:
+  /users/{id}:
+    get:
+      summary: Get a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: A user object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:    { type: string, example: "u_123" }
+        name:  { type: string, example: "Alice" }
+        email: { type: string, format: email }
+```
+
+Tools: Swagger UI, Redoc, Scalar — all render OpenAPI specs into interactive docs.
+
+---
+
+## Quick design checklist
+
+- [ ] Nouns in plural for resource URLs
+- [ ] HTTP methods map to CRUD semantics
+- [ ] Meaningful status codes — never `200 OK` for errors
+- [ ] Consistent response shape (data/meta/error wrapper)
+- [ ] ISO 8601 for all timestamps
+- [ ] String IDs (UUID/ULID/nanoid) instead of integers
+- [ ] API versioned (`/v1/`)
+- [ ] Authentication via `Authorization` header
+- [ ] Pagination on all list endpoints
+- [ ] Rate limit headers on all responses
+- [ ] ETag/Cache-Control headers on cacheable resources
+- [ ] `requestId` in all responses
+- [ ] Actionable error bodies with field-level detail
+- [ ] CORS configured correctly
+- [ ] OpenAPI spec maintained alongside the code
+
+That's it — apply these patterns consistently and your API will be a pleasure to use and maintain.

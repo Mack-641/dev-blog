@@ -1,0 +1,261 @@
+---
+layout: post
+title: "Git Command Cheatsheet"
+date: 2026-02-28 19:30:15 +0000
+categories: git workflow
+tags: ["git","cheatsheet","workflow"]
+image: /assets/images/git.jpg
+
+---
+
+
+A compact, practical Git command reference for daily use — copy commands and adapt them to your repo.
+
+
+## Setup & identity
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global core.editor "code --wait"
+git config --global init.defaultBranch main
+git config --global pull.rebase true          # rebase by default on pull
+git config --global core.autocrlf input       # Linux/macOS line endings
+git config --list --show-origin               # view all config with file locations
+```
+
+---
+
+## Create & clone
+
+```bash
+git init                        # create a repo in current directory
+git init <dir>                  # create a repo in a new directory
+git clone <url>                 # clone remote repo
+git clone <url> --depth 1       # shallow clone (latest snapshot only)
+git clone <url> --branch <name> # clone and check out a specific branch
+```
+
+---
+
+## Basic workflow
+
+```bash
+git status               # show changes
+git status -s            # compact status view
+git add <file>           # stage a file
+git add .                # stage all changes
+git add -p               # interactively stage hunks (recommended)
+git commit -m "message"  # commit staged changes
+git commit --amend --no-edit    # add staged changes into last commit
+git push origin main            # push to remote branch
+git push -u origin main         # push and set upstream (first time)
+git pull --rebase               # update local branch with remote changes (rebase)
+```
+
+---
+
+## Branching
+
+```bash
+git branch               # list local branches
+git branch -a            # list local + remote branches
+git branch -v            # list branches with last commit
+git branch <name>        # create branch
+git branch -d <name>     # delete branch (safe — merged only)
+git branch -D <name>     # force delete branch
+git checkout <name>      # switch branch
+git switch <name>        # switch branch (modern)
+git switch -c <name>     # create + switch (modern)
+git switch -             # switch back to previous branch
+git merge <branch>       # merge branch into current
+git merge --no-ff <branch>   # always create a merge commit
+git merge --squash <branch>  # squash all commits into one staged change
+git rebase <branch>          # rebase current onto branch
+git rebase -i HEAD~3         # interactive rebase — last 3 commits
+```
+
+---
+
+## Inspecting history & diffs
+
+```bash
+git log --oneline --graph --decorate --all
+git log --oneline -20              # last 20 commits
+git log --author="Name"            # commits by author
+git log --since="2 weeks ago"
+git log -p <file>                  # commits + diffs for a file
+git log --follow -p <file>         # follow renames too
+git diff                           # unstaged changes
+git diff --staged                  # staged vs HEAD
+git diff main..feature             # diff between two branches
+git diff HEAD~1 HEAD               # diff last two commits
+git show <commit>                  # show a single commit
+git blame <file>                   # line-by-line authorship
+git shortlog -sn                   # commit count per author
+```
+
+---
+
+## Undo & fix mistakes
+
+```bash
+git restore <file>                     # discard working-dir changes
+git restore --staged <file>            # unstage a file
+git checkout -- <file>                 # older form to discard
+git reset --soft HEAD~1                # undo last commit, keep staged
+git reset --mixed HEAD~1               # undo last commit, keep unstaged
+git reset --hard HEAD~1                # undo last commit, discard changes (destructive)
+git reset --hard origin/main           # reset branch to match remote (destructive)
+git revert <commit>                    # create a commit that undoes another commit
+git revert HEAD                        # revert the most recent commit
+git clean -fd                          # remove untracked files & directories
+git clean -n                           # dry run — preview what clean would remove
+```
+
+Recover a dropped commit or stash with `reflog`:
+
+```bash
+git reflog                             # history of HEAD movements
+git checkout -b recovery <commit-sha>  # restore a lost commit to a new branch
+```
+
+---
+
+## Working with remotes
+
+```bash
+git remote -v
+git remote add origin <url>
+git remote rename origin upstream
+git remote remove origin
+git fetch origin                          # fetch without merging
+git fetch --all --prune                   # fetch all remotes, remove stale tracking branches
+git pull origin main
+git push -u origin feature/xyz            # push and set upstream
+git push --force-with-lease               # safer force push (checks remote first)
+git push --delete origin <branch>         # delete remote branch
+git ls-remote origin                      # list all remote refs
+```
+
+---
+
+## Stashing
+
+```bash
+git stash                         # save working state (tracked files)
+git stash -u                      # include untracked files
+git stash push -m "my description"
+git stash list
+git stash show -p                 # show diff of latest stash
+git stash pop                     # restore and remove stash
+git stash apply stash@{1}         # apply specific stash without removing
+git stash drop stash@{1}          # delete a stash
+git stash clear                   # delete all stashes
+git stash branch <name>           # create branch from stash and pop it
+```
+
+---
+
+## Tags
+
+```bash
+git tag                           # list all tags
+git tag v1.0.0                    # lightweight tag on current commit
+git tag -a v1.0.0 -m "Release 1.0.0"   # annotated tag (preferred)
+git tag -a v1.0.0 <commit-sha>    # tag a specific past commit
+git push origin v1.0.0            # push a single tag
+git push origin --tags            # push all tags
+git push --delete origin v1.0.0   # delete a remote tag
+git tag -d v1.0.0                 # delete a local tag
+git checkout v1.0.0               # check out a tag (detached HEAD)
+```
+
+---
+
+## Cherry-pick & selective changes
+
+```bash
+git cherry-pick <commit>            # apply a commit from another branch
+git cherry-pick A..B                # apply a range of commits
+git cherry-pick --no-commit <commit>  # apply changes without committing
+git add -p                          # interactively stage hunks
+```
+
+---
+
+## Submodules
+
+```bash
+git submodule add <url> path/to/sub
+git submodule update --init --recursive   # init & fetch submodules
+git submodule foreach git pull origin main  # update all submodules
+git clone --recurse-submodules <url>      # clone with submodules
+```
+
+---
+
+## Bisect (find a regression)
+
+```bash
+git bisect start
+git bisect bad                    # current commit is broken
+git bisect good v1.2.0            # last known good commit
+# Git checks out a midpoint — test it, then:
+git bisect good                   # if it's fine
+git bisect bad                    # if it's broken
+# Repeat until Git identifies the first bad commit
+git bisect reset                  # exit bisect mode
+```
+
+---
+
+## Useful aliases (add to `~/.gitconfig`)
+
+```ini
+[alias]
+  st     = status -s
+  co     = checkout
+  sw     = switch
+  br     = branch -v
+  lg     = log --oneline --graph --decorate --all
+  df     = diff --stat
+  amend  = commit --amend --no-edit
+  undo   = reset --mixed HEAD~1
+  pushf  = push --force-with-lease
+  stash-all = stash push -u -m
+```
+
+---
+
+## `.gitignore` tips
+
+```bash
+git check-ignore -v <file>         # find which rule ignores a file
+git rm --cached <file>             # untrack a file already committed
+git rm --cached -r .               # untrack everything (re-adds via gitignore)
+```
+
+Common patterns for `.gitignore`:
+
+```
+node_modules/
+.env
+*.log
+dist/
+.DS_Store
+```
+
+---
+
+## Tips
+
+- Use `git status` often — it suggests the right commands.
+- Prefer feature branches: `feature/*` or `fix/*`.
+- Use `git pull --rebase` to keep history linear when collaborating.
+- Use `git push --force-with-lease` instead of `--force` to avoid overwriting teammates' work.
+- Use `git add -p` to make focused, meaningful commits.
+- Always write meaningful commit messages: describe *why*, not *what*.
+- Back up important work before using destructive commands (`reset --hard`, etc.).
+
+That's it — save this post for quick reference and extend it with commands you use most.

@@ -1,0 +1,397 @@
+---
+layout: post
+title: "Linux Command Cheatsheet"
+date: 2026-02-28 19:30:15 +0000
+categories: linux cli
+tags: ["linux","cheatsheet","cli"]
+image: /assets/images/linux.jpg
+---
+
+A compact Linux command reference for daily terminal work — copy commands and adapt them to your environment.
+
+
+## Files & directories
+
+```bash
+ls -la                          # list files with details
+ls -lhS                         # sorted by size, human-readable
+cd /path/to/dir                 # change directory
+cd -                            # go back to previous directory
+pwd                             # print working directory
+mkdir -p dir/subdir             # create directories (including parents)
+cp -r src dest                  # copy files/directories
+cp -a src dest                  # copy preserving timestamps/permissions
+mv old new                      # move/rename
+rm file                         # remove file
+rm -rf dir                      # remove directory (dangerous — no undo)
+ln -s /original /path/link      # create a symbolic link
+touch file.txt                  # create empty file or update timestamp
+```
+
+---
+
+## Viewing file contents
+
+```bash
+cat file
+tac file                         # reverse cat (last line first)
+less file                        # pager (q to quit, / to search)
+head -n 50 file
+tail -n 100 file
+tail -f /var/log/syslog          # follow log in real time
+tail -F /var/log/syslog          # follow even if file is rotated
+wc -l file                       # count lines
+wc -c file                       # count bytes
+nl file                          # print file with line numbers
+xxd file | head                  # hex dump
+```
+
+---
+
+## Searching & text processing
+
+```bash
+grep -r --include="*.py" "pattern" .      # recursive search, specific file types
+grep -r --line-number "pattern" .
+grep -i "pattern" file                    # case-insensitive
+grep -v "pattern" file                    # invert match (lines NOT matching)
+grep -c "pattern" file                    # count matching lines
+grep -A 3 -B 3 "pattern" file            # 3 lines after and before match
+
+awk '{print $1,$3}' file                  # print columns 1 and 3
+awk -F',' '{print $2}' file.csv          # CSV: print second column
+awk 'NR==5,NR==10' file                  # print lines 5–10
+
+sed -i 's/old/new/g' file                # in-place find & replace
+sed -n '1,50p' file                      # print lines 1–50
+sed '/pattern/d' file                    # delete lines matching pattern
+
+cut -d',' -f1,3 file                     # CSV: extract columns 1 and 3
+sort -k2 -n file                         # sort by column 2 numerically
+sort -u file                             # sort and deduplicate
+sort file | uniq -c | sort -rn          # frequency count
+tr '[:lower:]' '[:upper:]' < file        # transform characters
+paste file1 file2                        # merge lines from two files
+diff file1 file2                         # compare files
+comm -23 <(sort a.txt) <(sort b.txt)     # lines only in a.txt
+
+xargs -0 < list.txt command
+find . -name "*.txt" | xargs grep "foo"  # find + grep combo
+```
+
+---
+
+## File find & permissions
+
+```bash
+find /path -type f -name "*.log"
+find . -type d -name "node_modules"       # find directories
+find . -mtime -7                          # modified within 7 days
+find . -size +100M                        # files larger than 100 MB
+find . -empty                             # find empty files/dirs
+find /path -type f -exec chmod 644 {} \;  # change perms for all matching files
+stat file                                 # file metadata (size, times, permissions)
+chmod 644 file                            # rw-r--r--
+chmod +x script.sh                        # make executable
+chown user:group file                     # change owner
+chown -R user:group dir                   # recursive ownership change
+umask 022                                 # default permission mask
+```
+
+Permission reference: `r=4 w=2 x=1` — so `755 = rwxr-xr-x`, `644 = rw-r--r--`.
+
+---
+
+## Processes & system info
+
+```bash
+ps aux | grep myproc
+pgrep -f process_name
+pgrep -l nginx                            # list all nginx PIDs
+pkill -f process_name                     # kill by name
+top                                       # interactive process viewer
+htop                                      # improved top (if installed)
+kill <pid>                                # SIGTERM (graceful)
+kill -9 <pid>                             # SIGKILL (force)
+kill -HUP <pid>                           # SIGHUP (reload config)
+nice -n 10 command                        # start with low priority
+renice -n -5 <pid>                        # change priority of running process
+nohup command &                           # run immune to hangup, in background
+disown -h %1                              # disown background job
+jobs                                      # list background jobs
+bg %1                                     # resume job in background
+fg %1                                     # bring job to foreground
+
+# System info
+uname -a                                  # kernel and system info
+hostname
+uptime                                    # load average and uptime
+free -h                                   # memory usage
+lscpu                                     # CPU info
+lsmem                                     # memory info
+lshw -short                               # hardware summary (requires lshw)
+dmidecode -t system                       # hardware details via DMI
+```
+
+---
+
+## Networking
+
+```bash
+ip addr show
+ip addr show eth0                         # specific interface
+ip route show                             # routing table
+ip link set eth0 up/down                  # toggle interface
+ss -tulpen                                # sockets: TCP/UDP listening
+ss -tp                                    # TCP connections with PID
+netstat -tulpen                           # older alternative to ss
+curl -I https://example.com              # HTTP headers only
+curl -fsSL https://example.com -o file   # download to file
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"key":"value"}' https://api.example.com
+wget -c https://example.com/large.iso    # resumable download
+ping -c 4 8.8.8.8
+traceroute example.com
+mtr example.com                           # combine ping + traceroute (live)
+dig +short example.com
+dig example.com MX                        # query specific record type
+nslookup example.com
+host example.com
+nmap -sV 192.168.1.0/24                  # port scan a subnet (use responsibly)
+```
+
+Firewall (ufw on Ubuntu):
+
+```bash
+sudo ufw status
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw deny 3306
+sudo ufw enable
+sudo ufw reload
+```
+
+---
+
+## Package managers
+
+```bash
+# Debian/Ubuntu (apt)
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y package
+sudo apt remove package
+sudo apt autoremove
+dpkg -l | grep package              # check if installed
+apt-cache search keyword            # search packages
+
+# RHEL/CentOS/Fedora (dnf)
+sudo dnf install package
+sudo dnf update
+sudo dnf remove package
+rpm -qa | grep package              # list installed via rpm
+
+# Arch (pacman)
+sudo pacman -Syu                    # sync and upgrade
+sudo pacman -S package
+sudo pacman -R package
+sudo pacman -Ss keyword             # search
+
+# Snap / Flatpak
+snap install code --classic
+flatpak install flathub com.spotify.Client
+```
+
+---
+
+## Services & systemd
+
+```bash
+systemctl status nginx.service
+sudo systemctl start nginx
+sudo systemctl stop nginx
+sudo systemctl restart nginx
+sudo systemctl reload nginx         # reload config without restart
+sudo systemctl enable nginx         # start on boot
+sudo systemctl disable nginx
+sudo systemctl mask nginx           # prevent from being started at all
+systemctl list-units --type=service --state=running
+
+journalctl -u nginx -f              # follow service logs
+journalctl -u nginx --since "1 hour ago"
+journalctl -b                       # logs since last boot
+journalctl -b -1                    # logs from previous boot
+journalctl --disk-usage
+journalctl --vacuum-time=7d         # clear logs older than 7 days
+```
+
+---
+
+## Disks & mount
+
+```bash
+df -h                                # disk usage (human-readable)
+du -sh ./path                        # directory size
+du -h --max-depth=1 /var             # top-level directory sizes
+lsblk                                # block devices tree
+lsblk -f                             # with filesystem types
+fdisk -l                             # list partitions (as root)
+blkid                                # UUIDs and filesystem types
+mount /dev/sdb1 /mnt/data
+umount /mnt/data
+mount | grep sdb                     # list mounts matching pattern
+
+# Check/repair filesystem (unmounted first)
+fsck /dev/sdb1
+e2fsck -f /dev/sdb1
+
+# /etc/fstab example — persistent mount
+UUID=xxxx-xxxx  /mnt/data  ext4  defaults  0  2
+```
+
+---
+
+## SSH & remote
+
+```bash
+ssh user@host
+ssh -p 2222 user@host                       # non-default port
+ssh -i ~/.ssh/key user@host
+ssh -L 5432:localhost:5432 user@host        # local port forward (tunnel DB)
+ssh -R 8080:localhost:80 user@host          # reverse tunnel
+ssh -D 1080 user@host                       # SOCKS5 proxy
+scp file user@host:/path
+scp -r dir user@host:/path                  # recursive copy
+rsync -avz --progress ./dir/ user@host:/path
+rsync -avz --delete ./dir/ user@host:/path  # mirror (deletes remote extras)
+ssh-copy-id user@host                       # install your public key
+ssh-keygen -t ed25519 -C "you@example.com"  # generate modern key pair
+```
+
+`~/.ssh/config` example for shortcuts:
+
+```
+Host myserver
+    HostName 1.2.3.4
+    User deploy
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519
+    ServerAliveInterval 60
+```
+
+Then just: `ssh myserver`.
+
+---
+
+## Environment variables
+
+```bash
+export MY_VAR="value"               # set for current session
+echo $MY_VAR
+unset MY_VAR
+printenv                            # list all env variables
+env VAR=value command               # set for a single command
+# Add to ~/.bashrc or ~/.zshrc to persist across sessions
+```
+
+---
+
+## Archiving & compression
+
+```bash
+tar -czf archive.tar.gz dir/        # create gzip archive
+tar -cjf archive.tar.bz2 dir/       # create bzip2 archive
+tar -xzf archive.tar.gz             # extract gzip archive
+tar -xzf archive.tar.gz -C /dest    # extract to destination
+tar -tzf archive.tar.gz             # list contents
+zip -r archive.zip dir/
+unzip archive.zip -d /dest
+gzip file                           # compress (replaces original)
+gunzip file.gz                      # decompress
+```
+
+---
+
+## Cron & scheduling
+
+```bash
+crontab -e                          # edit user crontab
+crontab -l                          # list crontab entries
+```
+
+Cron syntax: `minute hour day month weekday command`
+
+```
+# Run every day at 2:30 AM
+30 2 * * * /usr/local/bin/backup.sh
+
+# Every 5 minutes
+*/5 * * * * /usr/local/bin/check.sh
+
+# Every weekday at 8 AM
+0 8 * * 1-5 /usr/local/bin/report.sh
+```
+
+---
+
+## Shell & productivity tips
+
+```bash
+# Quick file editing
+nano file
+vim file
+code file                       # VS Code from terminal
+
+# History
+history | grep deploy
+!123                            # run history item 123
+!!                              # repeat last command
+!$                              # last argument of previous command
+Ctrl+R                          # reverse search through history
+
+# Redirection
+command > out.txt               # stdout to file (overwrite)
+command >> out.txt              # stdout to file (append)
+command 2> errors.log           # stderr to file
+command 2>&1 | tee out.log      # both stdout + stderr, also display
+command &> all.log              # redirect both to file (bash shorthand)
+
+# Useful aliases (add to ~/.bashrc or ~/.zshrc)
+alias ll='ls -lah'
+alias gs='git status'
+alias gp='git pull --rebase'
+alias ..='cd ..'
+alias ...='cd ../..'
+
+# Watch a command repeatedly
+watch -n 2 df -h                # run df -h every 2 seconds
+
+# Timer
+time command                    # show how long a command takes
+
+# String manipulation
+basename /path/to/file.txt      # → file.txt
+dirname /path/to/file.txt       # → /path/to
+```
+
+---
+
+## Safety & debugging
+
+- Always use `sudo` only when necessary.
+- Preview destructive commands with `echo` or `--dry-run` first.
+- Redirect stderr for debugging: `command 2>errors.log`
+- Use `shellcheck` for shell script linting.
+- Use `set -euo pipefail` at the top of bash scripts (fail fast).
+- Use `trap 'cleanup' EXIT` in scripts to run cleanup on exit.
+
+---
+
+## Quick checklist before executing scripts from the web
+
+- Inspect the full script before running anything.
+- Run in a VM, container, or sandbox first.
+- Check required privileges and side effects.
+- Use `curl -fsSL <url> | less` to read before piping to bash.
+
+That's it — keep this post as a quick Linux CLI reference and extend with distro-specific notes as needed.

@@ -1,0 +1,119 @@
+---
+layout: base
+---
+
+<div class="home">
+  {%- if page.title -%}
+    <h1 class="page-heading">{{ page.title }}</h1>
+  {%- endif -%}
+
+  {{ content }}
+
+  <!-- Search bar -->
+  <div class="search-wrap">
+    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" id="search-input" class="search-input" placeholder="Search posts…" aria-label="Search posts" oninput="runSearch(this.value)">
+    <ul id="search-results" class="search-results" aria-live="polite"></ul>
+  </div>
+
+  {%- if site.paginate -%}
+    {%- assign posts = paginator.posts -%}
+  {%- else -%}
+    {%- assign posts = site.posts -%}
+  {%- endif -%}
+
+  <div id="post-list-wrap">
+    {%- if posts.size > 0 -%}
+      {%- if page.list_title -%}
+        <h2 class="post-list-heading">{{ page.list_title }}</h2>
+      {%- endif -%}
+      <ul class="post-list">
+        {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+        {%- for post in posts -%}
+        <li>
+          {%- if post.image -%}
+            <img src="{{ post.image | relative_url }}" alt="{{ post.title }}">
+          {%- endif -%}
+          <span class="post-meta">{{ post.date | date: date_format }}</span>
+          <h3>
+            <a class="post-link" href="{{ post.url | relative_url }}">
+              {{ post.title | escape }}
+            </a>
+          </h3>
+          {%- if site.minima.show_excerpts -%}
+            <p class="post-excerpt">{{ post.excerpt | strip_html | strip_newlines | truncate: 180 }}</p>
+          {%- endif -%}
+        </li>
+        {%- endfor -%}
+      </ul>
+
+      <!-- Pagination nav -->
+      {%- if site.paginate and paginator.total_pages > 1 -%}
+      <nav class="pagination-nav" aria-label="Post pagination">
+        {%- if paginator.previous_page -%}
+          <a class="pagination-btn" href="{{ paginator.previous_page_path | relative_url }}" aria-label="Newer posts">&#8592; Newer</a>
+        {%- else -%}
+          <span class="pagination-btn pagination-btn--disabled">&#8592; Newer</span>
+        {%- endif -%}
+
+        <span class="pagination-info">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
+
+        {%- if paginator.next_page -%}
+          <a class="pagination-btn" href="{{ paginator.next_page_path | relative_url }}" aria-label="Older posts">Older &#8594;</a>
+        {%- else -%}
+          <span class="pagination-btn pagination-btn--disabled">Older &#8594;</span>
+        {%- endif -%}
+      </nav>
+      {%- endif -%}
+
+    {%- endif -%}
+  </div>
+</div>
+
+<!-- Search index -->
+<script>
+const POSTS = [
+  {% for post in site.posts %}
+  {
+    title: {{ post.title | jsonify }},
+    url: {{ post.url | relative_url | jsonify }},
+    excerpt: {{ post.excerpt | strip_html | strip_newlines | truncate: 200 | jsonify }},
+    date: {{ post.date | date: "%b %d, %Y" | jsonify }},
+    categories: {{ post.categories | join: ", " | jsonify }}
+  }{% unless forloop.last %},{% endunless %}
+  {% endfor %}
+];
+
+function runSearch(query) {
+  const resultsEl = document.getElementById('search-results');
+  const postListWrap = document.getElementById('post-list-wrap');
+  query = query.trim().toLowerCase();
+
+  if (!query) {
+    resultsEl.innerHTML = '';
+    resultsEl.hidden = true;
+    postListWrap.style.display = '';
+    return;
+  }
+
+  postListWrap.style.display = 'none';
+  const matches = POSTS.filter(p =>
+    p.title.toLowerCase().includes(query) ||
+    p.excerpt.toLowerCase().includes(query) ||
+    p.categories.toLowerCase().includes(query)
+  );
+
+  if (matches.length === 0) {
+    resultsEl.innerHTML = '<li class="search-no-results">No results found for <strong>' + query + '</strong></li>';
+  } else {
+    resultsEl.innerHTML = matches.map(p => `
+      <li class="search-result-item">
+        <a href="${p.url}" class="post-link">${p.title}</a>
+        <span class="post-meta">${p.date} &mdash; ${p.categories}</span>
+        <p>${p.excerpt}</p>
+      </li>
+    `).join('');
+  }
+  resultsEl.hidden = false;
+}
+</script>

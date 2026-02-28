@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "sissel.shopify-liquid",
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}
